@@ -114,9 +114,10 @@ static int execute( const KStringV& argv, int mode = P_WAIT,
 
         ofs.close();
 
+        string rspArg( string("@") + rspTemp );
+
         char* spawn_argv[] = { const_cast< char* >( argv[ 0 ].c_str()),
-                               const_cast< char* >(
-                                    ( string("@") + rspTemp ).c_str()),
+                               const_cast< char* >( rspArg.c_str()),
                                0 };
 
         int rc = spawnvp( mode, spawn_argv[ 0 ], spawn_argv );
