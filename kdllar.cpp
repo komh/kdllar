@@ -355,6 +355,8 @@ int KDllAr::processArg()
     if( _useCrtDll )
         _flags += "-Zcrtdll";
 
+    _exclude += " _DLL_InitTerm";
+
     if( _libFlags.empty())
         _libFlags = "INITINSTANCE TERMINSTANCE";
 
