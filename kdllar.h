@@ -51,6 +51,7 @@ private:
     bool        _useLxlite;
     std::string _defName;
     std::string _implibName;
+    bool        _keepDef;
 
     std::string _dllName;
     bool        _defProvided;

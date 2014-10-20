@@ -152,7 +152,7 @@ Usage: kdllar [-o[utput] output_file] [-d[escription] \"dll descrption\"]\n\
        [-cc \"CC\"] [-f[lags] \"CFLAGS\"] [-ord[inals]] -ex[clude] \"symbol(s)\"\n\
        [-libf[lags] \"{INIT|TERM}{GLOBAL|INSTANCE}\"] [-nocrt[dll]]\n\
        [-libd[ata] \"DATA\"] [-omf] [-nolxlite] [-def def_file]\n\
-       [-implib implib_file] [*.o] [*.a]\n\
+       [-nokeepdef] [-implib implib_file] [*.o] [*.a]\n\
 *> \"output_file\" should have no extension.\n\
    If it has the .o, .a or .dll extension, it is automatically removed.\n\
    The import library name is derived from this and is set to \"name\"_dll.a\n\
@@ -174,6 +174,7 @@ Usage: kdllar [-o[utput] output_file] [-d[escription] \"dll descrption\"]\n\
    C runtime DLLs.\n\
 *> -nolxlite does not compress executable\n\
 *> -def def_file do not generate .def file, use def_file instead.\n\
+*> -nokeepdef do not keep generated .def file.\n\
 *> -omf will use OMF tools to extract the static library objects. deprecated.\n\
 *> -implib implib_file will create an import library named \"implib_file\"\n\
    instead of \"name\"_dll.a. \"implib_file\" should have .a or .lib\n\
@@ -201,6 +202,7 @@ KDllAr::KDllAr( int argc, char* argv[])
         , _useCrtDll( true )
         , _useOmf( false )
         , _useLxlite( true )
+        , _keepDef( true )
         , _defProvided( false )
 {
     int i;
@@ -322,6 +324,10 @@ int KDllAr::processArg()
                     _implibName += ".a";
             }
         }
+        else if( !arg.compare("-nokeepdef"))
+        {
+            _keepDef = false;
+        }
         else
         {
             if( arg[ 0 ] != '-')
@@ -382,6 +388,9 @@ int KDllAr::run()
 
     if( lxlite())
         return -1;
+
+    if( !_keepDef && !_defProvided)
+        remove( _defName.c_str());
 
     return 0;
 }
