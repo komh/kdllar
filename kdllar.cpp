@@ -324,10 +324,7 @@ int KDllAr::processArg()
         }
         else
         {
-            string ext( getext( arg ));
-
-            if( !stricmp( ext, ".o") || !stricmp( ext, ".obj")
-                || !stricmp( ext, ".a") || !stricmp( ext, ".lib"))
+            if( arg[ 0 ] != '-')
             {
                 if( _outputName.empty())
                     _outputName = getname( arg );
