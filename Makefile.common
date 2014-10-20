@@ -1,0 +1,79 @@
+#                                                                              
+#   Common parts of GNU Make/GCC build system for multi-targets
+#   Copyright (C) 2014 by KO Myung-Hun <komh@chollian.net>
+#   All rights reserved.
+#   Contact: KO Myung-Hun (komh@chollian.net)
+#
+#   This file is part of KDllAr
+#
+#   $BEGIN_LICENSE$
+#
+#   GNU General Public License Usage
+#   This file may be used under the terms of the GNU
+#   General Public License version 3.0 as published by the Free Software
+#   Foundation and appearing in the file LICENSE.GPL included in the
+#   packaging of this file.  Please review the following information to
+#   ensure the GNU General Public License version 3.0 requirements will be
+#   met: http://www.gnu.org/copyleft/gpl.html.
+#
+#   $END_LICENSE$
+#
+
+##### Common parts that you don't have to modify
+
+# set compiler and linker
+CC  = gcc
+CXX = g++
+LD  = g++
+
+# default extension of an object file
+OBJEXT ?= .o
+
+# default extension of the executable
+EXEEXT ?= .exe
+
+.SUFFIXES : .c .cpp $(OBJEXT) $(EXEEXT)
+
+define program_template
+$(1)_DEPS := $(foreach s,$($(1)_SRCS),$(s:$(suffix $(s))=.d))
+$$($(1)_DEPS) : CFLAGS += $($(1)_CFLAGS)
+$$($(1)_DEPS) : CXXFLAGS += $($(1)_CXXFLAGS)
+
+$(1)_OBJS := $$($(1)_DEPS:.d=$(OBJEXT))
+$$($(1)_OBJS) : CFLAGS += $($(1)_CFLAGS)
+$$($(1)_OBJS) : CXXFLAGS += $($(1)_CXXFLAGS)
+
+$(1)$(EXEEXT) : $$($(1)_OBJS)
+	$(LD) $(LDFLAGS) $$($(1)_LDFLAGS) -o $$@ $$($(1)_OBJS) $(LDLIBS) $$($(1)_LDLIBS)
+
+$(1) : $(1)$(EXEEXT)
+endef
+
+%.d : %.c
+	$(CC) $(CFLAGS) -MM -MP -MT "$(@:.d=$(OBJEXT)) $@" -MF $@ $<
+
+%.d : %.cpp
+	$(CXX) $(CXXFLAGS) -MM -MP -MT "$(@:.d=$(OBJEXT)) $@" -MF $@ $<
+
+%$(OBJEXT) : %.c
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+%$(OBJEXT) : %.cpp
+	$(CXX) $(CXXFLAGS) -c -o $@ $<
+
+.PHONY : all $(BIN_PROGRAMS) clean
+
+all : $(BIN_PROGRAMS)
+
+$(foreach prog,$(BIN_PROGRAMS),$(eval $(call program_template,$(prog))))
+
+clean :
+	rm -f $(foreach prog,$(BIN_PROGRAMS),$($(prog)_DEPS:.d=.bak))
+	rm -f $(foreach prog,$(BIN_PROGRAMS),$($(prog)_DEPS))
+	rm -f $(foreach prog,$(BIN_PROGRAMS),$($(prog)_OBJS))
+	rm -f $(foreach prog,$(BIN_PROGRAMS),$(addsuffix $(EXEEXT),$(prog)))
+
+ifeq ($(filter %clean,$(MAKECMDGOALS)),)
+-include $(foreach prog,$(BIN_PROGRAMS),$($(prog)_DEPS))
+endif
+
