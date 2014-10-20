@@ -151,10 +151,12 @@ kdllar: no input files\n\
 Usage: kdllar [-o[utput] output_file] [-d[escription] \"dll descrption\"]\n\
        [-cc \"CC\"] [-f[lags] \"CFLAGS\"] [-ord[inals]] -ex[clude] \"symbol(s)\"\n\
        [-libf[lags] \"{INIT|TERM}{GLOBAL|INSTANCE}\"] [-nocrt[dll]]\n\
-       [-libd[ata] \"DATA\"] [-omf] [-nolxlite] [-def def_file] [*.o] [*.a]\n\
+       [-libd[ata] \"DATA\"] [-omf] [-nolxlite] [-def def_file]\n\
+       [-implib implib_file] [*.o] [*.a]\n\
 *> \"output_file\" should have no extension.\n\
    If it has the .o, .a or .dll extension, it is automatically removed.\n\
-   The import library name is derived from this and is set to \"name\"_dll.a.\n\
+   The import library name is derived from this and is set to \"name\"_dll.a\n\
+   unless -implib is used.\n\
 *> \"cc\" is used to use another GCC executable.   (default: gcc.exe)\n\
 *> \"flags\" should be any set of valid GCC flags. (default: -Zcrtdll)\n\
    These flags will be put at the start of GCC command line.\n\
@@ -173,6 +175,9 @@ Usage: kdllar [-o[utput] output_file] [-d[escription] \"dll descrption\"]\n\
 *> -nolxlite does not compress executable\n\
 *> -def def_file do not generate .def file, use def_file instead.\n\
 *> -omf will use OMF tools to extract the static library objects. deprecated.\n\
+*> -implib implib_file will create an import library named \"implib_file\"\n\
+   instead of \"name\"_dll.a. \"implib_file\" should have .a or .lib\n\
+   extension.\n\
 *> All other switches (for example -L./ or -lmylib) will be passed\n\
    unchanged to GCC at the end of command line.\n\
 *> If you create a DLL from a library and you do not specify -o,\n\
@@ -304,6 +309,17 @@ int KDllAr::processArg()
                 _defName =  _argv[ i ];
 
                 _defProvided = true;
+            }
+        }
+        else if( !arg.compare("-implib"))
+        {
+            if( i + 1 < _argv.size())
+            {
+                i++;
+                _implibName =  _argv[ i ];
+
+                if( getext( _implibName ).empty())
+                    _implibName += ".a";
             }
         }
         else
