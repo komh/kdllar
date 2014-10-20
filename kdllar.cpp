@@ -342,7 +342,7 @@ int KDllAr::processArg()
         }
     }
 
-    if( _argv.size() == 1 || _objs.size() == 0 )
+    if( _objs.size() == 0 )
     {
         usage();
 
