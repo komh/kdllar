@@ -55,6 +55,7 @@ private:
     bool        _keepDef;
     std::string _symFile;
     bool        _symPrefix;
+    std::string _objExt;
 
     std::string _dllName;
     bool        _defProvided;

@@ -166,6 +166,18 @@ static int execute( const KStringV& argv, int mode = P_WAIT,
     return rc;
 }
 
+static bool isObject( const string& name, const KStringV& objExt )
+{
+    for( KStringV::const_iterator it = objExt.begin(); it != objExt.end();
+         ++it )
+    {
+        if( !stricmp( getext( name ), *it ))
+            return true;
+    }
+
+    return false;
+}
+
 static void usage()
 {
     static const char *msg = "\
@@ -175,7 +187,7 @@ Usage: kdllar [-o[utput] output_file] [-d[escription] \"dll descrption\"]\n\
        [-in[clude] \"symbol(s)\"] [-libf[lags] \"{INIT|TERM}{GLOBAL|INSTANCE}\"]\n\
        [-nocrt[dll]] [-libd[ata] \"DATA\"] [-omf] [-nolxlite] [-def def_file]\n\
        [-nokeepdef] [-implib implib_file] [-symfile \"symbol files\"]\n\
-       [-symprefix] [*.o] [*.a]\n\
+       [-symprefix] [-objext \"obj_extension(s)\"] [*.o] [*.a]\n\
 *> \"output_file\" should have no extension.\n\
    If it has the .o, .a or .dll extension, it is automatically removed.\n\
    The import library name is derived from this and is set to \"name\"_dll.a\n\
@@ -212,6 +224,8 @@ Usage: kdllar [-o[utput] output_file] [-d[escription] \"dll descrption\"]\n\
    -ord[inals], -in[clude] and -ex[clude] are ignored.\n\
 *> -symprefix prepends an underline to each symbol name. This works only if\n\
    -symfile is used.\n\
+*> -objext specifies additional object extensions. A leading dot is needed.\n\
+   (default: .o, .obj, .a, .lib)\n\
 *> All other switches (for example -L./ or -lmylib) will be passed\n\
    unchanged to GCC at the end of command line.\n\
 *> If you create a DLL from a library and you do not specify -o,\n\
@@ -383,17 +397,33 @@ int KDllAr::processArg()
         {
             _symPrefix = true;
         }
+        else if( !arg.compare("-objext"))
+        {
+            if( i + 1 < _argv.size())
+            {
+                i++;
+                _objExt += " " + _argv[ i ];
+            }
+        }
         else
         {
-            if( arg[ 0 ] != '-')
-            {
-                if( _outputName.empty())
-                    _outputName = getname( arg );
-
-                _objs.push_back( arg );
-            }
-
             _gcc_argv.push_back( arg );
+        }
+    }
+
+    _objExt += " .o .obj .a .lib";
+
+    KStringV objExt( KStringV::split( _objExt ));
+
+    for( KStringV::const_iterator it = _gcc_argv.begin();
+         it != _gcc_argv.end(); ++it )
+    {
+        if(( *it )[ 0 ] != '-' && isObject(( *it ), objExt ))
+        {
+            if( _outputName.empty())
+                _outputName = getname( *it );
+
+            _objs.push_back( *it );
         }
     }
 
