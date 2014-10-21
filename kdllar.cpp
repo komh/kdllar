@@ -181,7 +181,6 @@ static bool isObject( const string& name, const KStringV& objExt )
 static void usage()
 {
     static const char *msg = "\
-kdllar: no input files\n\
 Usage: kdllar [-o[utput] output_file] [-d[escription] \"dll descrption\"]\n\
        [-cc \"CC\"] [-f[lags] \"CFLAGS\"] [-ord[inals]] [-ex[clude] \"symbol(s)\"]\n\
        [-in[clude] \"symbol(s)\"] [-libf[lags] \"{INIT|TERM}{GLOBAL|INSTANCE}\"]\n\
@@ -430,6 +429,8 @@ int KDllAr::processArg()
     if( _objs.size() == 0 )
     {
         usage();
+
+        cerr << "Error: no input files" << endl;
 
         return -1;
     }
