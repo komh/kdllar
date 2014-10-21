@@ -38,6 +38,10 @@ KStringV::KStringV KStringV::split( const string& s, char delim )
         while( s[ pos ] == ' ')
             pos++;
 
+        // empty string or trailing spaces ?
+        if( !s[ pos ])
+            break;
+
         len = s.find( delim, pos );
         if( len != string::npos )
             len = len - pos;
