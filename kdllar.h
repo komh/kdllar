@@ -44,6 +44,7 @@ private:
     std::string _flags;
     bool        _useOrd;
     std::string _exclude;
+    std::string _include;
     std::string _libFlags;
     bool        _useCrtDll;
     std::string _libData;

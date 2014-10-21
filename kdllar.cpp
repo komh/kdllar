@@ -85,6 +85,28 @@ static inline bool isExcluded( const string& name,
     return false;
 }
 
+static inline bool isIncluded( const string& name,
+                               const KStringV& include )
+{
+    if( include.size() == 0 )
+        return true;
+
+    for( KStringV::const_iterator it = include.begin();
+         it != include.end(); ++it )
+    {
+        string pattern;
+
+        pattern += "*\"";
+        pattern += *it;
+        pattern += "\"*";
+
+        if( !fnmatch( pattern.c_str(), name.c_str(), _FNM_POSIX ))
+            return true;
+    }
+
+    return false;
+}
+
 static int execute( const KStringV& argv, int mode = P_WAIT,
                     bool useResponse = true, string* rspName = 0 )
 {
@@ -150,8 +172,8 @@ static void usage()
 kdllar: no input files\n\
 Usage: kdllar [-o[utput] output_file] [-d[escription] \"dll descrption\"]\n\
        [-cc \"CC\"] [-f[lags] \"CFLAGS\"] [-ord[inals]] [-ex[clude] \"symbol(s)\"]\n\
-       [-libf[lags] \"{INIT|TERM}{GLOBAL|INSTANCE}\"] [-nocrt[dll]]\n\
-       [-libd[ata] \"DATA\"] [-omf] [-nolxlite] [-def def_file]\n\
+       [-in[clude] \"symbol(s)\"] [-libf[lags] \"{INIT|TERM}{GLOBAL|INSTANCE}\"]\n\
+       [-nocrt[dll]] [-libd[ata] \"DATA\"] [-omf] [-nolxlite] [-def def_file]\n\
        [-nokeepdef] [-implib implib_file] [*.o] [*.a]\n\
 *> \"output_file\" should have no extension.\n\
    If it has the .o, .a or .dll extension, it is automatically removed.\n\
@@ -165,6 +187,11 @@ Usage: kdllar [-o[utput] output_file] [-d[escription] \"dll descrption\"]\n\
    multiple symbols, for example -ex \"myfunc yourfunc _GLOBAL*\".\n\
    If the last character of a symbol is \"*\", all symbols beginning\n\
    with the prefix before \"*\" will be exclude, (see _GLOBAL* above).\n\
+*> -in[clude] defines symbols which will be exported. You can define\n\
+   multiple symbols. for examples -in \"myfunc yourfunc _GLOBAL*\".\n\
+   If the last character of a symbol is \"*\", all symbols beginning\n\
+   with the prefix before \"*\" will be included, (see _GLOBAL* above).\n\
+   If the same symbols are specified by -ex as well, they will be excluded.\n\
 *> -libf[lags] can be used to add INITGLOBAL/INITINSTANCE and/or\n\
    TERMGLOBAL/TERMINSTANCE flags to the dynamically-linked library.\n\
    (default: INITINSTANCE TERMINSTANCE)\n\
@@ -270,6 +297,15 @@ int KDllAr::processArg()
             {
                 i++;
                 _exclude += " " + _argv[ i ];
+            }
+        }
+        else if( !arg.compare("-in") ||
+                 !arg.compare("-include"))
+        {
+            if( i + 1 < _argv.size())
+            {
+                i++;
+                _include += " " + _argv[ i ];
             }
         }
         else if( !arg.compare("-libf") ||
@@ -446,6 +482,7 @@ int KDllAr::emxexp()
         ss << "DATA " << _libData << endl;
         ss << "EXPORTS" << endl;
 
+        KStringV include( KStringV::split( _include ));
         KStringV exclude( KStringV::split( _exclude ));
 
         FILE* fp = fdopen( fd[ 0 ], "rt");
@@ -453,7 +490,7 @@ int KDllAr::emxexp()
 
         while( fgets( line, sizeof( line ), fp ))
         {
-            if( !isExcluded( line, exclude ))
+            if( isIncluded( line, include ) && !isExcluded( line, exclude ))
                 ss << line;
         }
 
