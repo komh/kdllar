@@ -203,7 +203,7 @@ Usage: kdllar [-o[utput] output_file] [-d[escription] \"dll descrption\"]\n\
 *> -nolxlite does not compress executable\n\
 *> -def def_file do not generate .def file, use def_file instead.\n\
 *> -nokeepdef do not keep generated .def file.\n\
-*> -omf will put -Zomf at the start of GCC command line.\n\
+*> -omf will put -Zomf at the start of GCC command line. This is always used.\n\
 *> -implib implib_file will create an import library named \"implib_file\"\n\
    instead of \"name\"_dll.a. \"implib_file\" should have .a or .lib\n\
    extension.\n\
@@ -233,7 +233,7 @@ Example:\n\
 KDllAr::KDllAr( int argc, char* argv[])
         : _useOrd( false )
         , _useCrtDll( true )
-        , _useOmf( false )
+        , _useOmf( true )
         , _useLxlite( true )
         , _keepDef( true )
         , _symPrefix( false )
