@@ -174,7 +174,7 @@ Usage: kdllar [-o[utput] output_file] [-d[escription] \"dll descrption\"]\n\
        [-cc \"CC\"] [-f[lags] \"CFLAGS\"] [-ord[inals]] [-ex[clude] \"symbol(s)\"]\n\
        [-in[clude] \"symbol(s)\"] [-libf[lags] \"{INIT|TERM}{GLOBAL|INSTANCE}\"]\n\
        [-nocrt[dll]] [-libd[ata] \"DATA\"] [-omf] [-nolxlite] [-def def_file]\n\
-       [-nokeepdef] [-implib implib_file] [*.o] [*.a]\n\
+       [-nokeepdef] [-implib implib_file] [-symfile \"symbol files\"] [*.o] [*.a]\n\
 *> \"output_file\" should have no extension.\n\
    If it has the .o, .a or .dll extension, it is automatically removed.\n\
    The import library name is derived from this and is set to \"name\"_dll.a\n\
@@ -206,6 +206,9 @@ Usage: kdllar [-o[utput] output_file] [-d[escription] \"dll descrption\"]\n\
 *> -implib implib_file will create an import library named \"implib_file\"\n\
    instead of \"name\"_dll.a. \"implib_file\" should have .a or .lib\n\
    extension.\n\
+*> -symfile uses \"symbol_files\" separated by a space to create a .def file.\n\
+   A symbol file should contain symbols and ordinals only. If -symfile is used,\n\
+   -ord[inals], -in[clude] and -ex[clude] are ignored.\n\
 *> All other switches (for example -L./ or -lmylib) will be passed\n\
    unchanged to GCC at the end of command line.\n\
 *> If you create a DLL from a library and you do not specify -o,\n\
@@ -364,6 +367,14 @@ int KDllAr::processArg()
         {
             _keepDef = false;
         }
+        else if( !arg.compare("-symfile"))
+        {
+            if( i + 1 < _argv.size())
+            {
+                i++;
+                _symFile += " " + _argv[ i ];
+            }
+        }
         else
         {
             if( arg[ 0 ] != '-')
@@ -415,7 +426,7 @@ int KDllAr::run()
     if( processArg())
         return -1;
 
-    if( emxexp())
+    if( !_defProvided && ( _symFile.empty() ? emxexp() : sym2def()))
         return -1;
 
     if( gcc())
@@ -529,6 +540,65 @@ int KDllAr::emxexp()
     close( fd[ 0 ]);
 
     return rc;
+}
+
+int KDllAr::sym2def()
+{
+    stringstream ss;
+
+    ss << "LIBRARY " << getname( _dllName ) << " " << _libFlags << endl;
+
+    if( !_description.empty())
+        ss << "DESCRIPTION \"" << _description << "\"" << endl;
+
+    ss << "DATA " << _libData << endl;
+    ss << "EXPORTS" << endl;
+
+    ifstream ifs;
+    string line;
+
+    KStringV symFile( KStringV::split( _symFile ));
+
+    for( KStringV::const_iterator it = symFile.begin(); it != symFile.end();
+         ++it )
+    {
+        ifs.open(( *it ).c_str());
+        if( !ifs.is_open())
+        {
+            cerr << "Failed to open a symbol file, " << *it << endl;
+
+            return -1;
+        }
+
+        while( !ifs.eof())
+        {
+            getline( ifs, line );
+
+            // remove EXPORTS and blank lines
+            if( line.compare("EXPORTS" )
+                && line.find_first_not_of(' ') != string::npos )
+                ss << line << endl;
+        }
+
+        ifs.close();
+        ifs.clear();
+    }
+
+    ofstream ofs;
+
+    ofs.open( _defName.c_str());
+    if( !ofs.is_open())
+    {
+        cerr << "Failed to create a def file, " << _defName << endl;
+
+        return -1;
+    }
+
+    ofs << ss.str();
+
+    ofs.close();
+
+    return 0;
 }
 
 int KDllAr::gcc()

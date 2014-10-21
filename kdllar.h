@@ -53,6 +53,7 @@ private:
     std::string _defName;
     std::string _implibName;
     bool        _keepDef;
+    std::string _symFile;
 
     std::string _dllName;
     bool        _defProvided;
@@ -61,6 +62,7 @@ private:
 
     int processArg();
     int emxexp();
+    int sym2def();
     int gcc();
     int emximp();
     int lxlite();
