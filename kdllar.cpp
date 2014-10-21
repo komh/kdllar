@@ -203,7 +203,7 @@ Usage: kdllar [-o[utput] output_file] [-d[escription] \"dll descrption\"]\n\
 *> -nolxlite does not compress executable\n\
 *> -def def_file do not generate .def file, use def_file instead.\n\
 *> -nokeepdef do not keep generated .def file.\n\
-*> -omf will use OMF tools to extract the static library objects. deprecated.\n\
+*> -omf will put -Zomf at the start of GCC command line.\n\
 *> -implib implib_file will create an import library named \"implib_file\"\n\
    instead of \"name\"_dll.a. \"implib_file\" should have .a or .lib\n\
    extension.\n\
@@ -409,6 +409,9 @@ int KDllAr::processArg()
 
     if( _useCrtDll )
         _flags += "-Zcrtdll";
+
+    if( _useOmf )
+        _flags += " -Zomf";
 
     _exclude += " _DLL_InitTerm";
 
