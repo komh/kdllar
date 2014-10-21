@@ -149,7 +149,7 @@ static void usage()
     static const char *msg = "\
 kdllar: no input files\n\
 Usage: kdllar [-o[utput] output_file] [-d[escription] \"dll descrption\"]\n\
-       [-cc \"CC\"] [-f[lags] \"CFLAGS\"] [-ord[inals]] -ex[clude] \"symbol(s)\"\n\
+       [-cc \"CC\"] [-f[lags] \"CFLAGS\"] [-ord[inals]] [-ex[clude] \"symbol(s)\"]\n\
        [-libf[lags] \"{INIT|TERM}{GLOBAL|INSTANCE}\"] [-nocrt[dll]]\n\
        [-libd[ata] \"DATA\"] [-omf] [-nolxlite] [-def def_file]\n\
        [-nokeepdef] [-implib implib_file] [*.o] [*.a]\n\
