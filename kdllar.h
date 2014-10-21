@@ -54,6 +54,7 @@ private:
     std::string _implibName;
     bool        _keepDef;
     std::string _symFile;
+    bool        _symPrefix;
 
     std::string _dllName;
     bool        _defProvided;

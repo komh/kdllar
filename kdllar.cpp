@@ -174,7 +174,8 @@ Usage: kdllar [-o[utput] output_file] [-d[escription] \"dll descrption\"]\n\
        [-cc \"CC\"] [-f[lags] \"CFLAGS\"] [-ord[inals]] [-ex[clude] \"symbol(s)\"]\n\
        [-in[clude] \"symbol(s)\"] [-libf[lags] \"{INIT|TERM}{GLOBAL|INSTANCE}\"]\n\
        [-nocrt[dll]] [-libd[ata] \"DATA\"] [-omf] [-nolxlite] [-def def_file]\n\
-       [-nokeepdef] [-implib implib_file] [-symfile \"symbol files\"] [*.o] [*.a]\n\
+       [-nokeepdef] [-implib implib_file] [-symfile \"symbol files\"]\n\
+       [-symprefix] [*.o] [*.a]\n\
 *> \"output_file\" should have no extension.\n\
    If it has the .o, .a or .dll extension, it is automatically removed.\n\
    The import library name is derived from this and is set to \"name\"_dll.a\n\
@@ -209,6 +210,8 @@ Usage: kdllar [-o[utput] output_file] [-d[escription] \"dll descrption\"]\n\
 *> -symfile uses \"symbol_files\" separated by a space to create a .def file.\n\
    A symbol file should contain symbols and ordinals only. If -symfile is used,\n\
    -ord[inals], -in[clude] and -ex[clude] are ignored.\n\
+*> -symprefix prepends an underline to each symbol name. This works only if\n\
+   -symfile is used.\n\
 *> All other switches (for example -L./ or -lmylib) will be passed\n\
    unchanged to GCC at the end of command line.\n\
 *> If you create a DLL from a library and you do not specify -o,\n\
@@ -233,6 +236,7 @@ KDllAr::KDllAr( int argc, char* argv[])
         , _useOmf( false )
         , _useLxlite( true )
         , _keepDef( true )
+        , _symPrefix( false )
         , _defProvided( false )
 {
     int i;
@@ -374,6 +378,10 @@ int KDllAr::processArg()
                 i++;
                 _symFile += " " + _argv[ i ];
             }
+        }
+        else if( !arg.compare("-symprefix"))
+        {
+            _symPrefix = true;
         }
         else
         {
@@ -577,7 +585,12 @@ int KDllAr::sym2def()
             // remove EXPORTS and blank lines
             if( line.compare("EXPORTS" )
                 && line.find_first_not_of(' ') != string::npos )
+            {
+                if( _symPrefix )
+                    ss << "_";
+
                 ss << line << endl;
+            }
         }
 
         ifs.close();
