@@ -269,7 +269,7 @@ int KDllAr::processArg()
             if( i + 1 < _argv.size())
             {
                 i++;
-                _exclude =  _argv[ i ];
+                _exclude += " " + _argv[ i ];
             }
         }
         else if( !arg.compare("-libf") ||
