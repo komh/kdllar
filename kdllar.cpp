@@ -408,7 +408,7 @@ int KDllAr::processArg()
         _cc = "gcc";
 
     if( _useCrtDll )
-        _flags += "-Zcrtdll";
+        _flags += " -Zcrtdll";
 
     if( _useOmf )
         _flags += " -Zomf";
