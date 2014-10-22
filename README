@@ -1,0 +1,45 @@
+K DLL Archiver
+--------------
+
+kdllar is an enhanced version of dllar.cmd.
+
+kdllar supports all options of dllar.cmd.
+
+kdllar has better things than dllar.cmd like this,
+
+    - Accept a response file
+    - Process a very long command line
+    - Do not depend on CMD.EXE and kRx.exe
+
+History
+-------
+
+v1.0.0( 2014/10/22 )
+    - Different things from dllar.cmd
+        * Default of -libf[lags] is INITINSTANCE TERMINSTANCE
+        * Default of -libd[data] is MULTIPLE NONSHARED
+        * -omf puts -Zomf flag at the start of GCC command line
+        * -omf is always used
+        * A static library name is not changed
+        * An import library name has _dll suffix
+
+    - New things
+        * -in[clude] : include specified symbols
+        * -nokeepdef : remove a generated def file after finish
+        * -implib    : specify an customized import library name
+                       independent a DLL name
+        * -symfile   : specify a file containing symbols to be exported
+        * -symprefix : prepend an underline to each symbols in a file
+                       specified by -symfile
+        * -objext    : specify additional object extensions
+
+
+Donation
+--------
+
+  If you are satisfied with this program and want to donate to me, please visit
+the following URL.
+
+    http://www.ecomstation.co.kr/komh/donate.html
+
+KO Myung-Hun
