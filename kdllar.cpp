@@ -181,6 +181,7 @@ static bool isObject( const string& name, const KStringV& objExt )
 static void usage()
 {
     static const char *msg = "\
+K DLL Archiver v" KDLLAR_VERSION " Copyright (C) 2014 KO Myung-Hun\n\
 Usage: kdllar [-o[utput] output_file] [-d[escription] \"dll descrption\"]\n\
        [-cc \"CC\"] [-f[lags] \"CFLAGS\"] [-ord[inals]] [-ex[clude] \"symbol(s)\"]\n\
        [-in[clude] \"symbol(s)\"] [-libf[lags] \"{INIT|TERM}{GLOBAL|INSTANCE}\"]\n\

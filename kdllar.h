@@ -28,6 +28,8 @@
 
 #include "kstringv.h"
 
+#define KDLLAR_VERSION  "1.0.0"
+
 class KDllAr
 {
 public:
