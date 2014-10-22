@@ -1,0 +1,25 @@
+                          Upload Information Template for Hobbes.nmsu.edu
+                          ===============================================
+
+        Archive Filename: kdllar@SHORT_VER@.zip
+       Short Description: kdllar v@VER@
+        Long Description: kdllar v@VER@
+K DLL Archiver. Enhanced version of dllar.cmd.
+
+      Proposed directory
+           for placement: /pub/os2/dev/util
+
+               Your name: KO Myung-Hun
+           Email address: komh@chollian.net
+    Program contact name: (same)
+   Program contact email: (same)
+             Program URL: https://github.com/komh/kdllar
+
+      Would you like the
+   contact email address
+    included in listings? yes
+
+Operating System/Version:
+ Additional requirements: kLIBC v0.6.5
+
+                Replaces: (none)
