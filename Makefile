@@ -1,26 +1,23 @@
 #
-#   Common parts of GNU Make/GCC build system for multi-targets
+#   Configuration parts of GNU Make/GCC build system.
 #   Copyright (C) 2014 by KO Myung-Hun <komh@chollian.net>
-#   All rights reserved.
-#   Contact: KO Myung-Hun (komh@chollian.net)
 #
-#   This file is part of KDllAr
+#   This file is part of GNU Make/GCC build system.
 #
-#   $BEGIN_LICENSE$
-#
-#   GNU General Public License Usage
-#   This file may be used under the terms of the GNU
-#   General Public License version 3.0 as published by the Free Software
-#   Foundation and appearing in the file LICENSE.GPL included in the
-#   packaging of this file.  Please review the following information to
-#   ensure the GNU General Public License version 3.0 requirements will be
-#   met: http://www.gnu.org/copyleft/gpl.html.
-#
-#   $END_LICENSE$
+#   This program is free software. It comes without any warranty, to
+#   the extent permitted by applicable law. You can redistribute it
+#   and/or modify it under the terms of the Do What The Fuck You Want
+#   To Public License, Version 2, as published by Sam Hocevar. See
+#   http://www.wtfpl.net/ for more details.
 #
 
+##### Configuration parts that you can modify
+
+# specify sub directories
+SUBDIRS :=
+
 # specify gcc compiler flags for all the programs
-#CFLAGS := -Wall
+CFLAGS :=
 
 # specify g++ compiler flags for all the programs
 CXXFLAGS := -Wall
@@ -28,16 +25,97 @@ CXXFLAGS := -Wall
 # specify linker flags such as -L option for all the programs
 LDFLAGS :=
 
-# specify libraries such as -l option for all the programs
+# specify dependent libraries such as -l option for all the programs
 LDLIBS :=
 
-# specify a list of programs without an extension
+ifdef RELEASE
+# specify flags for release mode
+CFLAGS   +=
+CXXFLAGS += -O3
+LDFLAGS  +=
+else
+# specify flags for debug mode
+CFLAGS   +=
+CXXFLAGS += -O0 -g -DDEBUG
+LDFLAGS  += -g
+endif
+
+# specify resource compiler, default is rc if not set
+RC :=
+
+# specify resource compiler flags
+RCFLAGS :=
+
+# 1. specify a list of programs without an extension with
+#
+#   BIN_PROGRAMS
+#
+# Now, assume
+#
+#   BIN_PROGRAMS := program
+#
+# 2. specify sources for a specific program with
+#
+#   program_SRCS
+#
+# the above is REQUIRED
+#
+# 3. specify various OPTIONAL flags for a specific program with
+#
+#   program_CFLAGS      for gcc compiler flags
+#   program_CXXFLAGS    for g++ compiler flags
+#   program_LDFLAGS     for linker flags
+#   program_LDLIBS      for dependent libraries
+#   program_RCSRC       for rc source
+#   program_RCFLAGS     for rc flags
+#   program_DEF         for .def file
+#   program_EXTRADEPS   for extra dependencies
+
 BIN_PROGRAMS := kdllar
 
-# specify sources for a specific program with program_SRCS. REQUIRED.
-# specify various flags for a specific program with program_CFLAGS,
-# program_CXXFLAGS, program_LDFLAGS, and program_LDLIBS. OPTIONAL.
 kdllar_SRCS     := main.cpp kdllar.cpp kstringv.cpp
 kdllar_LDFLAGS  := -Zargs-wild -Zargs-resp
 
+# 1. specify a list of libraries without an extension with
+#
+#   BIN_LIBRARIES
+#
+# Now, assume
+#
+#   BIN_PROGRAMS := library
+#
+# 2. specify sources for a specific library with
+#
+#   library_SRCS
+#
+# the above is REQUIRED
+#
+# 3. set library type flags for a specific library to a non-empty value
+#
+#   library_LIB         to create a static library
+#   library_DLL         to build a DLL
+#
+# either of the above SHOULD be SET
+#
+# 4. specify various OPTIONAL flags for a specific library with
+#
+#   library_CFLAGS      for gcc compiler flags
+#   library_CXXFLAGS    for g++ compiler flags
+#
+# the above is common for LIB and DLL
+#
+#   library_DLLNAME     for customized DLL name without an extension
+#   library_LDFLAGS     for linker flags
+#   library_LDLIBS      for dependent libraries
+#   library_RCSRC       for rc source
+#   library_RCFLAGS     for rc flags
+#   library_DEF         for .def file, if not set all the symbols are exported
+#   library_EXTRADEPS   for extra dependencies
+#
+# the above is only for DLL
+
+BIN_LIBRARIES :=
+
 include Makefile.common
+
+# additional stuffs
