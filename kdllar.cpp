@@ -676,7 +676,7 @@ int KDllAr::emximp()
     argv.push_back("emximp");
     argv.push_back("-o");
     argv.push_back( _implibName );
-    argv.push_back( _defName );
+    argv.push_back( _dllName );
 
     return execute( argv );
 }
