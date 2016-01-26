@@ -17,7 +17,7 @@ History
 v1.0.0( 2014/10/22 )
     - Different things from dllar.cmd
         * Default of -libf[lags] is INITINSTANCE TERMINSTANCE
-        * Default of -libd[data] is MULTIPLE NONSHARED
+        * Default of -libd[ata] is MULTIPLE NONSHARED
         * -omf puts -Zomf flag at the start of GCC command line
         * -omf is always used
         * A static library name is not changed
