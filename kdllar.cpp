@@ -452,6 +452,9 @@ int KDllAr::processArg()
     if( _libFlags.empty())
         _libFlags = "INITINSTANCE TERMINSTANCE";
 
+    if( !stricmp( _libData.substr( 0, 5 ), "DATA "))
+        _libData.erase( 0, 5 );
+
     if( _libData.empty())
         _libData = "MULTIPLE NONSHARED";
 
