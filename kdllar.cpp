@@ -168,10 +168,12 @@ static int execute( const KStringV& argv, int mode = P_WAIT,
 
 static bool isObject( const string& name, const KStringV& objExt )
 {
+    string ext( getext( name ));
+
     for( KStringV::const_iterator it = objExt.begin(); it != objExt.end();
          ++it )
     {
-        if( !stricmp( getext( name ), *it ))
+        if( !stricmp( ext, *it ))
             return true;
     }
 
