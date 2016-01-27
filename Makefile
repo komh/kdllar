@@ -1,6 +1,6 @@
 #
 #   Configuration parts of GNU Make/GCC build system.
-#   Copyright (C) 2014 by KO Myung-Hun <komh@chollian.net>
+#   Copyright (C) 2014-2016 by KO Myung-Hun <komh@chollian.net>
 #
 #   This file is part of GNU Make/GCC build system.
 #

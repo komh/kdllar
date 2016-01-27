@@ -1,7 +1,7 @@
 /****************************************************************************
 **
 ** KStringV, a convenience class for vector< string >
-** Copyright (C) 2014 by KO Myung-Hun
+** Copyright (C) 2014-2016 by KO Myung-Hun
 ** All rights reserved.
 ** Contact: KO Myung-Hun (komh@chollian.net)
 **
