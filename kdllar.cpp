@@ -664,6 +664,13 @@ int KDllAr::gcc()
 
     argv.append( KStringV::split( _flags ));
 
+    char *ldType = getenv("EMXOMFLD_TYPE");
+    if( ldType && !stricmp( ldType, "WLINK"))
+    {
+        argv.push_back("-Zlinker");
+        argv.push_back("DISABLE 1121");
+    }
+
     argv.push_back("-o");
     argv.push_back( _dllName );
 
