@@ -66,7 +66,7 @@ private:
 
     int processArg();
     int emxexp();
-    int sym2def();
+    int sym2in();
     int gcc();
     int emximp();
     int lxlite();

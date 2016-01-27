@@ -222,10 +222,9 @@ Usage: kdllar [-o[utput] output_file] [-d[escription] \"dll descrption\"]\n\
    instead of \"name\"_dll.a. \"implib_file\" should have .a or .lib\n\
    extension.\n\
 *> -symfile uses \"symbol_files\" separated by a space to create a .def file.\n\
-   A symbol file should contain symbols and ordinals only. If -symfile is used,\n\
-   -ord[inals], -in[clude] and -ex[clude] are ignored.\n\
-*> -symprefix prepends an underline to each symbol name. This works only if\n\
-   -symfile is used.\n\
+   A symbol file should contain symbols only.\n\
+*> -symprefix prepends an underline to each symbol name. This applies only to\n\
+   the symbols in the symbol files specified by -symfile.\n\
 *> -objext specifies additional object extensions. A leading dot is needed.\n\
    (default: .o, .obj, .a, .lib)\n\
 *> All other switches (for example -L./ or -lmylib) will be passed\n\
@@ -474,7 +473,7 @@ int KDllAr::run()
     if( processArg())
         return -1;
 
-    if( !_defProvided && ( _symFile.empty() ? emxexp() : sym2def()))
+    if( !_defProvided && ( sym2in() || emxexp()))
         return -1;
 
     if( gcc())
@@ -590,18 +589,8 @@ int KDllAr::emxexp()
     return rc;
 }
 
-int KDllAr::sym2def()
+int KDllAr::sym2in()
 {
-    stringstream ss;
-
-    ss << "LIBRARY " << getname( _dllName ) << " " << _libFlags << endl;
-
-    if( !_description.empty())
-        ss << "DESCRIPTION \"" << _description << "\"" << endl;
-
-    ss << "DATA " << _libData << endl;
-    ss << "EXPORTS" << endl;
-
     ifstream ifs;
     string line;
 
@@ -626,30 +615,18 @@ int KDllAr::sym2def()
             if( line.compare("EXPORTS" )
                 && line.find_first_not_of(' ') != string::npos )
             {
-                if( _symPrefix )
-                    ss << "_";
+                _include += " ";
 
-                ss << line << endl;
+                if( _symPrefix )
+                    _include += "_";
+
+                _include += line;
             }
         }
 
         ifs.close();
         ifs.clear();
     }
-
-    ofstream ofs;
-
-    ofs.open( _defName.c_str());
-    if( !ofs.is_open())
-    {
-        cerr << "Failed to create a def file, " << _defName << endl;
-
-        return -1;
-    }
-
-    ofs << ss.str();
-
-    ofs.close();
 
     return 0;
 }
