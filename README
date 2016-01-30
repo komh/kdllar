@@ -14,6 +14,24 @@ kdllar has better things than dllar.cmd like this,
 History
 -------
 
+v1.1.0 ( 2016/01/30 )
+    - Create an import lib from a DLL directly
+        * Support symbols declared by __declspec(dllexport) but not specified
+        in .def file
+
+    - Mimic a bug of dllar
+        * For example, -libd "DATA MULTIPLE", which is used in gcc project, is
+        allowed even if it's an error because it will be "DATA DATA MULTIPLE"
+        in .def file.
+
+    - Supress 'xxx has already been exported' warning of WLINK
+    - Allow to use of -symfile and -in[clude]/-ex[clude]/-ord[inals] together
+        * -symfile adds symbols of symbol files to -in[clude] list
+        * Support of ordinals in symbol files are dropped. If needed, use .def
+        file
+        * Even if symbols in symbol files do not exist in a DLL, it does not
+        cause an error, but it is ignored silently like -in[clude]
+
 v1.0.0( 2014/10/22 )
     - Different things from dllar.cmd
         * Default of -libf[lags] is INITINSTANCE TERMINSTANCE
