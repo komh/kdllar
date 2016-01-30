@@ -28,7 +28,7 @@
 
 #include "kstringv.h"
 
-#define KDLLAR_VERSION  "1.0.0"
+#define KDLLAR_VERSION  "1.1.0"
 
 class KDllAr
 {
