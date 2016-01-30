@@ -20,6 +20,6 @@ K DLL Archiver. Enhanced version of dllar.cmd.
     included in listings? yes
 
 Operating System/Version:
- Additional requirements: kLIBC v0.6.5
+ Additional requirements: kLIBC v0.6.6
 
                 Replaces: (none)
