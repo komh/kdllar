@@ -219,7 +219,7 @@ Usage: kdllar [-o[utput] output_file] [-d[escription] \"dll descrption\"]\n\
    If the last character of a symbol is \"*\", all symbols beginning\n\
    with the prefix before \"*\" will be exclude, (see _GLOBAL* above).\n\
 *> -in[clude] defines symbols which will be exported. You can define\n\
-   multiple symbols. for examples -in \"myfunc yourfunc _GLOBAL*\".\n\
+   multiple symbols. for example -in \"myfunc yourfunc _GLOBAL*\".\n\
    If the last character of a symbol is \"*\", all symbols beginning\n\
    with the prefix before \"*\" will be included, (see _GLOBAL* above).\n\
    If the same symbols are specified by -ex as well, they will be excluded.\n\
