@@ -39,7 +39,7 @@
 
 using namespace std;
 
-static inline string getname( const string &filename )
+static inline string getName( const string &filename )
 {
     string name( filename );
 
@@ -51,7 +51,7 @@ static inline string getname( const string &filename )
     return name;
 }
 
-static inline string getext( const string &filename )
+static inline string getExt( const string &filename )
 {
     size_t pos = filename.rfind('.');
 
@@ -180,7 +180,7 @@ static bool isObject( const string& name, const KStringV& objExt,
                       const KStringV& includeLibs,
                       const KStringV& excludeLibs )
 {
-    string ext( getext( name ));
+    string ext( getExt( name ));
 
     for( KStringV::const_iterator it = objExt.begin(); it != objExt.end();
          ++it )
@@ -299,7 +299,7 @@ int KDllAr::processArg()
             if( i + 1 < _argv.size())
             {
                 i++;
-                _outputName = getname( _argv[ i ]);
+                _outputName = getName( _argv[ i ]);
             }
         }
         else if( !arg.compare("-d") ||
@@ -399,7 +399,7 @@ int KDllAr::processArg()
                 i++;
                 _implibName =  _argv[ i ];
 
-                if( getext( _implibName ).empty())
+                if( getExt( _implibName ).empty())
                     _implibName += ".a";
             }
         }
@@ -447,7 +447,7 @@ int KDllAr::processArg()
         }
         else
         {
-            _gcc_argv.push_back( arg );
+            _gccArgv.push_back( arg );
         }
     }
 
@@ -458,14 +458,14 @@ int KDllAr::processArg()
     KStringV includeLibs( KStringV::split( _includeLibs ));
     KStringV excludeLibs( KStringV::split( _excludeLibs ));
 
-    for( KStringV::const_iterator it = _gcc_argv.begin();
-         it != _gcc_argv.end(); ++it )
+    for( KStringV::const_iterator it = _gccArgv.begin();
+         it != _gccArgv.end(); ++it )
     {
         if(( *it )[ 0 ] != '-' &&
            isObject(( *it ), objExt, includeLibs, excludeLibs ))
         {
             if( _outputName.empty())
-                _outputName = getname( *it );
+                _outputName = getName( *it );
 
             _objs.push_back( *it );
         }
@@ -575,7 +575,7 @@ int KDllAr::emxexp()
     {
         stringstream ss;
 
-        ss << "LIBRARY " << getname( _dllName ) << " " << _libFlags << endl;
+        ss << "LIBRARY " << getName( _dllName ) << " " << _libFlags << endl;
 
         if( !_description.empty())
             ss << "DESCRIPTION \"" << _description << "\"" << endl;
@@ -694,7 +694,7 @@ int KDllAr::gcc()
     argv.push_back("-o");
     argv.push_back( _dllName );
 
-    argv.append( _gcc_argv );
+    argv.append( _gccArgv );
 
     argv.push_back( _defName );
 

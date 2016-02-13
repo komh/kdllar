@@ -62,7 +62,7 @@ private:
     std::string _dllName;
     bool        _defProvided;
     KStringV    _objs;
-    KStringV    _gcc_argv;
+    KStringV    _gccArgv;
 
     std::string _includeLibs;
     std::string _excludeLibs;
