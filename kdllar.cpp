@@ -67,16 +67,21 @@ static inline int stricmp( const string& s1, const string& s2 )
 }
 
 static inline bool isExcluded( const string& name,
-                               const KStringV& exclude )
+                               const KStringV& exclude,
+                               bool symbol = true )
 {
     for( KStringV::const_iterator it = exclude.begin();
          it != exclude.end(); ++it )
     {
         string pattern;
 
-        pattern += "*\"";
+        if (symbol)
+            pattern += "*\"";
+
         pattern += *it;
-        pattern += "\"*";
+
+        if (symbol)
+            pattern += "\"*";
 
         if( !fnmatch( pattern.c_str(), name.c_str(), _FNM_POSIX ))
             return true;
@@ -86,7 +91,8 @@ static inline bool isExcluded( const string& name,
 }
 
 static inline bool isIncluded( const string& name,
-                               const KStringV& include )
+                               const KStringV& include,
+                               bool symbol = true )
 {
     if( include.size() == 0 )
         return true;
@@ -96,9 +102,13 @@ static inline bool isIncluded( const string& name,
     {
         string pattern;
 
-        pattern += "*\"";
+        if (symbol)
+            pattern += "*\"";
+
         pattern += *it;
-        pattern += "\"*";
+
+        if (symbol)
+            pattern += "\"*";
 
         if( !fnmatch( pattern.c_str(), name.c_str(), _FNM_POSIX ))
             return true;
@@ -166,7 +176,9 @@ static int execute( const KStringV& argv, int mode = P_WAIT,
     return rc;
 }
 
-static bool isObject( const string& name, const KStringV& objExt )
+static bool isObject( const string& name, const KStringV& objExt,
+                      const KStringV& includeLibs,
+                      const KStringV& excludeLibs )
 {
     string ext( getext( name ));
 
@@ -174,7 +186,9 @@ static bool isObject( const string& name, const KStringV& objExt )
          ++it )
     {
         if( !stricmp( ext, *it ))
-            return true;
+            return (stricmp( ext, ".a") && stricmp( ext, ".lib")) ||
+                   ( isIncluded( name, includeLibs, false ) &&
+                     !isExcluded( name, excludeLibs, false ));
     }
 
     return false;
@@ -189,7 +203,9 @@ Usage: kdllar [-o[utput] output_file] [-d[escription] \"dll descrption\"]\n\
        [-in[clude] \"symbol(s)\"] [-libf[lags] \"{INIT|TERM}{GLOBAL|INSTANCE}\"]\n\
        [-nocrt[dll]] [-libd[ata] \"DATA\"] [-omf] [-nolxlite] [-def def_file]\n\
        [-nokeepdef] [-implib implib_file] [-symfile \"symbol files\"]\n\
-       [-symprefix] [-objext \"obj_extension(s)\"] [*.o] [*.a]\n\
+       [-symprefix] [-objext \"obj_extension(s)\"]\n\
+       [-ex[clude]libs \"lib(s)\"] [-in[clude]libs \"lib(s)\"]\n\
+       [*.o] [*.a]\n\
 *> \"output_file\" should have no extension.\n\
    If it has the .o, .a or .dll extension, it is automatically removed.\n\
    The import library name is derived from this and is set to \"name\"_dll.a\n\
@@ -227,6 +243,11 @@ Usage: kdllar [-o[utput] output_file] [-d[escription] \"dll descrption\"]\n\
    the symbols in the symbol files specified by -symfile.\n\
 *> -objext specifies additional object extensions. A leading dot is needed.\n\
    (default: .o, .obj, .a, .lib)\n\
+*> -ex[clude]libs specifies libraries not to export symbols. Wildcards(*,?)\n\
+   are supported.\n\
+*> -in[clude]libs specifies libraries to export symbols. Wildcards(*,?) are\n\
+   supported. If the same libraries are specified by -exlibs, they will not\n\
+   be exported.\n\
 *> All other switches (for example -L./ or -lmylib) will be passed\n\
    unchanged to GCC at the end of command line.\n\
 *> If you create a DLL from a library and you do not specify -o,\n\
@@ -406,6 +427,24 @@ int KDllAr::processArg()
                 _objExt += " " + _argv[ i ];
             }
         }
+        else if( !arg.compare("-inlibs") ||
+                 !arg.compare("-includelibs"))
+        {
+            if( i + 1 < _argv.size())
+            {
+                i++;
+                _includeLibs += " " + _argv[ i ];
+            }
+        }
+        else if( !arg.compare("-exlibs") ||
+                 !arg.compare("-excludelibs"))
+        {
+            if( i + 1 < _argv.size())
+            {
+                i++;
+                _excludeLibs += " " + _argv[ i ];
+            }
+        }
         else
         {
             _gcc_argv.push_back( arg );
@@ -416,10 +455,14 @@ int KDllAr::processArg()
 
     KStringV objExt( KStringV::split( _objExt ));
 
+    KStringV includeLibs( KStringV::split( _includeLibs ));
+    KStringV excludeLibs( KStringV::split( _excludeLibs ));
+
     for( KStringV::const_iterator it = _gcc_argv.begin();
          it != _gcc_argv.end(); ++it )
     {
-        if(( *it )[ 0 ] != '-' && isObject(( *it ), objExt ))
+        if(( *it )[ 0 ] != '-' &&
+           isObject(( *it ), objExt, includeLibs, excludeLibs ))
         {
             if( _outputName.empty())
                 _outputName = getname( *it );

@@ -64,6 +64,9 @@ private:
     KStringV    _objs;
     KStringV    _gcc_argv;
 
+    std::string _includeLibs;
+    std::string _excludeLibs;
+
     int processArg();
     int emxexp();
     int sym2in();
