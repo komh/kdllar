@@ -39,23 +39,54 @@
 
 using namespace std;
 
+static inline size_t getLastDirSepPos( const string& filename )
+{
+    return filename.find_last_of("/\\:");
+}
+
+static inline size_t getLastExtDotPos( const string& filename )
+{
+    size_t lastDirSepPos = getLastDirSepPos( filename );
+    size_t pos = filename.rfind('.');
+
+    if( lastDirSepPos == string::npos || pos == string::npos ||
+        pos > lastDirSepPos + 1 /* not a first character of a name */ )
+        return pos;
+
+    return string::npos;
+}
+
 static inline string getName( const string &filename )
 {
-    string name( filename );
+    return filename.substr( 0, getLastExtDotPos( filename ));
+}
 
-    size_t pos = name.rfind('.');
+static inline string getDir( const string& filename )
+{
+    size_t pos = getLastDirSepPos( filename );
+    if( pos == string::npos )
+        return string();
 
-    if( pos != string::npos && pos != 0 )
-        name.erase( pos );
+    return filename.substr( 0, pos + 1 );
+}
 
-    return name;
+static inline string getFName( const string &filename )
+{
+    size_t pos = getLastDirSepPos( filename );
+    pos = ( pos == string::npos ) ? 0 : ( pos + 1 );
+
+    size_t len = getLastExtDotPos( filename );
+    if( len != string::npos )
+        len -= pos;
+
+    return filename.substr( pos, len );
 }
 
 static inline string getExt( const string &filename )
 {
-    size_t pos = filename.rfind('.');
+    size_t pos = getLastExtDotPos( filename );
 
-    if( pos == string::npos || pos == 0 )
+    if( pos == string::npos )
         return string();
 
     return filename.substr( pos );
@@ -506,7 +537,8 @@ int KDllAr::processArg()
     if( _implibName.empty())
         _implibName = _outputName + "_dll.a";
 
-    _dllName = _outputName.substr( 0, 8 ) + ".dll";
+    _dllName = getDir( _outputName ) + getFName( _outputName ).substr( 0, 8 )
+               + ".dll";
 
     return 0;
 }
@@ -575,7 +607,7 @@ int KDllAr::emxexp()
     {
         stringstream ss;
 
-        ss << "LIBRARY " << getName( _dllName ) << " " << _libFlags << endl;
+        ss << "LIBRARY " << getFName( _dllName ) << " " << _libFlags << endl;
 
         if( !_description.empty())
             ss << "DESCRIPTION \"" << _description << "\"" << endl;
