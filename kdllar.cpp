@@ -193,7 +193,7 @@ static int execute( const KStringV& argv, int mode = P_WAIT,
         return rc;
     }
 
-    char** spawn_argv = new ( char* )[ argv.size() + 1 ];
+    char** spawn_argv = new char* [ argv.size() + 1 ];
 
     for( size_t i = 0; i < argv.size(); i++ )
         spawn_argv[ i ] = const_cast< char* >( argv[ i ].c_str());
