@@ -225,6 +225,45 @@ static bool isObject( const string& name, const KStringV& objExt,
     return false;
 }
 
+static bool checkQuoteNeeded()
+{
+    FILE *out;
+
+    out = popen("gcc --version", "r");
+    if( !out )
+    {
+        perror("popen");
+
+        return false;
+    }
+
+    bool quoteNeeded = false;
+
+    char line[ 512 ];
+    if( fgets( line, sizeof( line ), out ))
+    {
+        for( int i = 0, ch; ( ch = line[ i ]); ++i )
+        {
+            // Check major version only.
+            // gcc 3.3.5 does not parse a response file by itself. Instead,
+            // _response() parses a response file. But, gcc 4.9.2 parses
+            // a response file by itself before _response() parses a response
+            // file. As a result, gcc 4.9.2 requires to quotate an argument
+            // including white-spaces. Maybe this is true for other gcc 4
+            // version or later.
+            if( isdigit( ch ))
+            {
+                quoteNeeded = ch > '3';
+                break;
+            }
+        }
+    }
+
+    pclose( out );
+
+    return quoteNeeded;
+}
+
 static void usage()
 {
     static const char *msg = "\
@@ -720,7 +759,13 @@ int KDllAr::gcc()
     if( ldType && !stricmp( ldType, "WLINK"))
     {
         argv.push_back("-Zlinker");
-        argv.push_back("DISABLE 1121");
+
+        string disable1121 = "DISABLE 1121";
+
+        if( checkQuoteNeeded())
+            disable1121 = "\"" + disable1121 + "\"";
+
+        argv.push_back( disable1121 );
     }
 
     argv.push_back("-o");
