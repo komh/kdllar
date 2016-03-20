@@ -14,6 +14,18 @@ kdllar has better things than dllar.cmd like this,
 History
 -------
 
+v1.2.0 ( 2016/03/20 )
+    - Added -in[clude]libs and -ex[clude]libs
+        * -in[clude]libs exports symbols from the given libraries
+        * -ex[clude]libs does not export symbols from the given libraries
+
+    - Fixed dll name corruption if a path is included
+        * For example, ..\dll_long_name.dll became ..\dllna.dll not
+        dll_long.dll
+
+    - Fixed the failure due to "DISABLE 1121" on gcc 4 or later
+        * gcc4 and later process a response file differently from gcc3
+
 v1.1.0 ( 2016/01/30 )
     - Create an import lib from a DLL directly
         * Support symbols declared by __declspec(dllexport) but not specified
