@@ -148,19 +148,31 @@ static inline bool isIncluded( const string& name,
     return false;
 }
 
-static int execute( const KStringV& argv, int mode = P_WAIT,
-                    bool useResponse = true, string* rspName = 0 )
+static int execute( const KStringV& argv, const KStringV& rspArgv = KStringV(),
+                    int mode = P_WAIT, string* rspName = 0 )
 {
     for( KStringV::const_iterator it = argv.begin(); it != argv.end();
          ++it )
         cerr << *it << " ";
+
+    for( KStringV::const_iterator it = rspArgv.begin(); it != rspArgv.end();
+         ++it )
+        cerr << *it << " ";
+
     cerr << endl;
 
-    if( useResponse )
-    {
-        string rspTemp( argv[ 0 ]);
-        rspTemp += ".rsp";
+    char** spawn_argv = new char* [ argv.size() + 1/* for response */
+                                                + 1/* for NULL */ ];
 
+    size_t argi;
+    for( argi = 0; argi < argv.size(); argi++ )
+        spawn_argv[ argi ] = const_cast< char* >( argv[ argi ].c_str());
+
+    string rspTemp( argv[ 0 ]);
+    rspTemp += ".rsp";
+
+    if( rspArgv.size() > 0 )
+    {
         ofstream ofs;
 
         ofs.open( rspTemp.c_str());
@@ -171,36 +183,27 @@ static int execute( const KStringV& argv, int mode = P_WAIT,
             return -1;
         }
 
-        for( KStringV::const_iterator it = argv.begin() + 1; it != argv.end();
-            ++it )
+        for( KStringV::const_iterator it = rspArgv.begin();
+             it != rspArgv.end(); ++it )
             ofs << *it << endl;
 
         ofs.close();
 
-        string rspArg( string("@") + rspTemp );
+        spawn_argv[ argi++ ] = const_cast< char *>
+                                (( string("@") + rspTemp ).c_str());
+    }
 
-        char* spawn_argv[] = { const_cast< char* >( argv[ 0 ].c_str()),
-                               const_cast< char* >( rspArg.c_str()),
-                               0 };
+    spawn_argv[ argi ] = 0;
 
-        int rc = spawnvp( mode, spawn_argv[ 0 ], spawn_argv );
+    int rc = spawnvp( mode, spawn_argv[ 0 ], spawn_argv );
 
+    if( rspArgv.size() > 0 )
+    {
         if( rc == -1 || !rspName )
             remove( rspTemp.c_str());
         else
             *rspName = rspTemp;
-
-        return rc;
     }
-
-    char** spawn_argv = new char* [ argv.size() + 1 ];
-
-    for( size_t i = 0; i < argv.size(); i++ )
-        spawn_argv[ i ] = const_cast< char* >( argv[ i ].c_str());
-
-    spawn_argv[ argv.size()] = 0;
-
-    int rc = spawnvp( mode, spawn_argv[ 0 ], spawn_argv );
 
     delete[] spawn_argv;
 
@@ -223,45 +226,6 @@ static bool isObject( const string& name, const KStringV& objExt,
     }
 
     return false;
-}
-
-static bool checkQuoteNeeded()
-{
-    FILE *out;
-
-    out = popen("gcc --version", "r");
-    if( !out )
-    {
-        perror("popen");
-
-        return false;
-    }
-
-    bool quoteNeeded = false;
-
-    char line[ 512 ];
-    if( fgets( line, sizeof( line ), out ))
-    {
-        for( int i = 0, ch; ( ch = line[ i ]); ++i )
-        {
-            // Check major version only.
-            // gcc 3.3.5 does not parse a response file by itself. Instead,
-            // _response() parses a response file. But, gcc 4.9.2 parses
-            // a response file by itself before _response() parses a response
-            // file. As a result, gcc 4.9.2 requires to quotate an argument
-            // including white-spaces. Maybe this is true for other gcc 4
-            // version or later.
-            if( isdigit( ch ))
-            {
-                quoteNeeded = ch > '3';
-                break;
-            }
-        }
-    }
-
-    pclose( out );
-
-    return quoteNeeded;
 }
 
 static void usage()
@@ -633,11 +597,9 @@ int KDllAr::emxexp()
     if( _useOrd )
         argv.push_back("-o");
 
-    argv.append( _objs );
-
     string rspName;
 
-    int rc = execute( argv, P_NOWAIT, true, &rspName );
+    int rc = execute( argv, _objs, P_NOWAIT, &rspName );
 
     dup2( oldStdOut, STDOUT_FILE_NO );
     close( oldStdOut );
@@ -759,23 +721,14 @@ int KDllAr::gcc()
     if( ldType && !stricmp( ldType, "WLINK"))
     {
         argv.push_back("-Zlinker");
-
-        string disable1121 = "DISABLE 1121";
-
-        if( checkQuoteNeeded())
-            disable1121 = "\"" + disable1121 + "\"";
-
-        argv.push_back( disable1121 );
+        argv.push_back("DISABLE 1121");
     }
 
     argv.push_back("-o");
     argv.push_back( _dllName );
-
-    argv.append( _gccArgv );
-
     argv.push_back( _defName );
 
-    return execute( argv );
+    return execute( argv, _gccArgv );
 }
 
 int KDllAr::emximp()
@@ -804,5 +757,5 @@ int KDllAr::lxlite()
     argv.push_back("-ml1");
     argv.push_back( _dllName );
 
-    return execute( argv, P_WAIT, false );
+    return execute( argv );
 }
