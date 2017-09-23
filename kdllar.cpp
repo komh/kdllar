@@ -687,9 +687,12 @@ int KDllAr::sym2in()
         {
             getline( ifs, line );
 
+            // skip white spaces
+            while( line[ 0 ] == ' ' || line[ 0 ] == '\t')
+                line.erase( 0, 1 );
+
             // remove EXPORTS and blank lines
-            if( line.compare("EXPORTS" )
-                && line.find_first_not_of(' ') != string::npos )
+            if( line.compare("EXPORTS" ) && line.length() > 0 )
             {
                 _include += " ";
 
