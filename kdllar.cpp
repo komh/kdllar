@@ -239,7 +239,7 @@ Usage: kdllar [-o[utput] output_file] [-d[escription] \"dll descrption\"]\n\
        [-nokeepdef] [-implib implib_file] [-symfile \"symbol files\"]\n\
        [-symprefix] [-objext \"obj_extension(s)\"]\n\
        [-ex[clude]libs \"lib(s)\"] [-in[clude]libs \"lib(s)\"]\n\
-       [*.o] [*.a]\n\
+       [-noexport] [*.o] [*.a]\n\
 *> \"output_file\" should have no extension.\n\
    If it has the .o, .a or .dll extension, it is automatically removed.\n\
    The import library name is derived from this and is set to \"name\"_dll.a\n\
@@ -282,6 +282,9 @@ Usage: kdllar [-o[utput] output_file] [-d[escription] \"dll descrption\"]\n\
 *> -in[clude]libs specifies libraries to export symbols. Wildcards(*,?) are\n\
    supported. If the same libraries are specified by -exlibs, they will not\n\
    be exported.\n\
+*> -noexport do not export any symbols via .def file. This is useful if all\n\
+   symbols are exported in sources via keywords such as\n\
+   __declspec(dllexport). This is equivalent to -ex \"*\".\n\
 *> All other switches (for example -L./ or -lmylib) will be passed\n\
    unchanged to GCC at the end of command line.\n\
 *> If you create a DLL from a library and you do not specify -o,\n\
@@ -478,6 +481,10 @@ int KDllAr::processArg()
                 i++;
                 _excludeLibs += " " + _argv[ i ];
             }
+        }
+        else if( !arg.compare("-noexport"))
+        {
+            _exclude += " *";
         }
         else
         {
