@@ -556,6 +556,9 @@ int KDllAr::processArg()
     _dllName = getDir( _outputName ) + getFName( _outputName ).substr( 0, 8 )
                + ".dll";
 
+    if( !_defProvided && !_keepDef )
+        _tempFiles.push_back( _defName );
+
     return 0;
 }
 
@@ -575,9 +578,6 @@ int KDllAr::run()
 
     if( lxlite())
         return -1;
-
-    if( !_keepDef && !_defProvided)
-        remove( _defName.c_str());
 
     if( removeTempFiles())
         return -1;
