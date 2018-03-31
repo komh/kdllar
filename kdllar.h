@@ -67,12 +67,16 @@ private:
     std::string _includeLibs;
     std::string _excludeLibs;
 
+    KStringV    _tempFiles;
+
     int processArg();
+    int emxomf( std::string *obj );
     int emxexp();
     int sym2in();
     int gcc();
     int emximp();
     int lxlite();
+    int removeTempFiles();
 };
 #endif
 

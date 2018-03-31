@@ -37,6 +37,9 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 
+#include <ar.h>
+#include <a_out.h>
+
 using namespace std;
 
 static inline size_t getLastDirSepPos( const string& filename )
@@ -499,7 +502,7 @@ int KDllAr::processArg()
     KStringV includeLibs( KStringV::split( _includeLibs ));
     KStringV excludeLibs( KStringV::split( _excludeLibs ));
 
-    for( KStringV::const_iterator it = _gccArgv.begin();
+    for( KStringV::iterator it = _gccArgv.begin();
          it != _gccArgv.end(); ++it )
     {
         if(( *it )[ 0 ] != '-' &&
@@ -507,6 +510,9 @@ int KDllAr::processArg()
         {
             if( _outputName.empty())
                 _outputName = getName( *it );
+
+            if( emxomf( &( *it )) == -1 )
+                return -1;
 
             _objs.push_back( *it );
         }
@@ -572,6 +578,60 @@ int KDllAr::run()
 
     if( !_keepDef && !_defProvided)
         remove( _defName.c_str());
+
+    if( removeTempFiles())
+        return -1;
+
+    return 0;
+}
+
+int KDllAr::emxomf( string *obj )
+{
+    union AoutHdr
+    {
+        ar_hdr arHdr;
+        exec   aoutHdr;
+    } hdr;
+
+    ifstream ifs;
+
+    ifs.open( obj->c_str(), ifs.in | ifs.binary );
+    if( !ifs.is_open())
+    {
+        cerr << "Failed to open " << *obj << endl;
+
+        return -1;
+    }
+
+    ifs.read( reinterpret_cast< char * >( &hdr ), sizeof( hdr ));
+    if( !ifs.good())
+    {
+        cerr << "Failed to read " << *obj << endl;
+
+        return -1;
+    }
+
+    string omfExt;
+    if( memcmp( hdr.arHdr.ar_name, ARMAG, SARMAG ) == 0 )
+        omfExt = ".lib";
+    else if( N_MAGIC( hdr.aoutHdr ) == OMAGIC )
+        omfExt = ".obj";
+
+    if( !omfExt.empty())
+    {
+        KStringV argv;
+
+        argv.push_back("emxomf");
+        argv.push_back("-o");
+        argv.push_back( *obj + omfExt );
+        argv.push_back( *obj );
+        if( execute( argv ) == -1 )
+            return -1;
+
+        *obj += omfExt;
+
+        _tempFiles.push_back( *obj );
+    }
 
     return 0;
 }
@@ -768,4 +828,13 @@ int KDllAr::lxlite()
     argv.push_back( _dllName );
 
     return execute( argv );
+}
+
+int KDllAr::removeTempFiles()
+{
+    for( KStringV::const_iterator it = _tempFiles.begin();
+         it != _tempFiles.end(); ++it )
+        remove(( *it ).c_str());
+
+    return 0;
 }
