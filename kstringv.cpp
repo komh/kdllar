@@ -25,9 +25,9 @@
 
 using namespace std;
 
-KStringV::KStringV KStringV::split( const string& s, char delim )
+KStringV KStringV::split( const string& s, char delim )
 {
-    KStringV::KStringV v;
+    KStringV v;
 
     size_t pos = 0;
     size_t len = 0;
