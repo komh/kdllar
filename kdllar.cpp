@@ -164,12 +164,10 @@ static int execute( const KStringV& argv, const KStringV& rspArgv = KStringV(),
 
     cerr << endl;
 
-    char** spawn_argv = new char* [ argv.size() + 1/* for response */
-                                                + 1/* for NULL */ ];
+    vector< char * > spawn_argv;
 
-    size_t argi;
-    for( argi = 0; argi < argv.size(); argi++ )
-        spawn_argv[ argi ] = const_cast< char* >( argv[ argi ].c_str());
+    for( KStringV::const_iterator it = argv.begin(); it != argv.end(); ++it )
+        spawn_argv.push_back( const_cast< char * >(( *it ).c_str()));
 
     string rspTemp( argv[ 0 ]);
     rspTemp += ".rsp";
@@ -192,13 +190,13 @@ static int execute( const KStringV& argv, const KStringV& rspArgv = KStringV(),
 
         ofs.close();
 
-        spawn_argv[ argi++ ] = const_cast< char *>
-                                (( string("@") + rspTemp ).c_str());
+        spawn_argv.push_back( const_cast< char * >
+                              (( string("@") + rspTemp ).c_str()));
     }
 
-    spawn_argv[ argi ] = 0;
+    spawn_argv.push_back( 0 );
 
-    int rc = spawnvp( mode, spawn_argv[ 0 ], spawn_argv );
+    int rc = spawnvp( mode, spawn_argv[ 0 ], &spawn_argv[0]);
 
     if( rspArgv.size() > 0 )
     {
@@ -207,8 +205,6 @@ static int execute( const KStringV& argv, const KStringV& rspArgv = KStringV(),
         else
             *rspName = rspTemp;
     }
-
-    delete[] spawn_argv;
 
     return rc;
 }
