@@ -791,7 +791,10 @@ int KDllAr::gcc()
     if( ldType && !stricmp( ldType, "WLINK"))
     {
         argv.push_back("-Zlinker");
-        argv.push_back("DISABLE 1121");
+        argv.push_back("DISABLE");
+
+        argv.push_back("-Zlinker");
+        argv.push_back("1121");
     }
 
     argv.push_back("-o");
