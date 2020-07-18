@@ -172,6 +172,8 @@ static int execute( const KStringV& argv, const KStringV& rspArgv = KStringV(),
     string rspTemp( argv[ 0 ]);
     rspTemp += ".rsp";
 
+    string rspArg("@");
+
     if( rspArgv.size() > 0 )
     {
         ofstream ofs;
@@ -190,8 +192,9 @@ static int execute( const KStringV& argv, const KStringV& rspArgv = KStringV(),
 
         ofs.close();
 
-        spawn_argv.push_back( const_cast< char * >
-                              (( string("@") + rspTemp ).c_str()));
+        rspArg += rspTemp;
+
+        spawn_argv.push_back( const_cast< char * >( rspArg.c_str()));
     }
 
     spawn_argv.push_back( 0 );
