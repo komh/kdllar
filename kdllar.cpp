@@ -169,7 +169,7 @@ static int execute( const KStringV& argv, const KStringV& rspArgv = KStringV(),
     for( KStringV::const_iterator it = argv.begin(); it != argv.end(); ++it )
         spawn_argv.push_back( const_cast< char * >(( *it ).c_str()));
 
-    string rspTemp( argv[ 0 ]);
+    string rspTemp( getFName( argv[ 0 ]));
     rspTemp += ".rsp";
 
     string rspArg("@");
