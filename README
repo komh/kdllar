@@ -14,6 +14,21 @@ kdllar has better things than dllar.cmd like this,
 History
 -------
 
+v1.3.0 ( 2020/07/18 )
+    - Added -noexport
+        * -noexport is equivalent to -ex "*"
+        * -noexport is used with sources exporting all symbols with
+          __declspec(dllexport)
+
+    - Fixed symbols with leading white-spaces are exported with them
+
+    - Fixed some long symbol names are not found in .def. Issues #2.
+
+    - Fixed 'DISABLE 1121' is not processed correctly with gcc v9.1.0.
+      Issues #3.
+
+    - Fixed sometimes garbage argument is passed to gcc
+
 v1.2.0 ( 2016/03/20 )
     - Added -in[clude]libs and -ex[clude]libs
         * -in[clude]libs exports symbols from the given libraries
