@@ -603,7 +603,7 @@ int KDllAr::emxomf( string *obj )
     }
 
     ifs.read( reinterpret_cast< char * >( &hdr ), sizeof( hdr ));
-    if( !ifs.good())
+    if( !ifs.good() && !ifs.eof())
     {
         cerr << "Failed to read " << *obj << endl;
 
