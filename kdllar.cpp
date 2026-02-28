@@ -31,14 +31,62 @@
 #include <cstdlib>
 #include <cstring>
 
+#ifdef __EMX__
 #include <io.h>
 #include <process.h>
+#else
+#include <unistd.h>
+#endif
 #include <fnmatch.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 
 #include <ar.h>
-#include <a_out.h>
+#include "a_out.h"
+
+#ifndef __EMX__
+#define _FNM_POSIX 0
+
+#define stricmp strcasecmp
+
+#define P_WAIT      0
+#define P_NOWAIT    1
+
+static int spawnvp (int mode, const char *name, char * const argv[])
+{
+  int status;
+  int err;
+  int pid = fork();
+
+  if (pid == -1)
+    return -1;
+
+  if (pid == 0)
+    {
+      execvp (name, argv);
+      _exit (127);
+    }
+
+  if ((mode & 0xFF) == P_NOWAIT)
+    return pid;
+
+  /* P_WAIT */
+  while ((err = waitpid (pid, &status, 0)) == -1 && errno == EINTR)
+    /* nothing */;
+
+  if (err == -1)
+    return -1;
+
+  if (WIFSIGNALED (status))
+    return 128 + WTERMSIG (status);
+
+  if (WIFEXITED (status))
+    return WEXITSTATUS (status);
+
+  /* possible? */
+  return -1;
+}
+#endif
 
 using namespace std;
 
@@ -174,6 +222,7 @@ static int execute( const KStringV& argv, const KStringV& rspArgv = KStringV(),
 
     string rspArg("@");
 
+#ifdef __EMX__
     if( rspArgv.size() > 0 )
     {
         ofstream ofs;
@@ -196,6 +245,11 @@ static int execute( const KStringV& argv, const KStringV& rspArgv = KStringV(),
 
         spawn_argv.push_back( const_cast< char * >( rspArg.c_str()));
     }
+#else
+    for( KStringV::const_iterator it = rspArgv.begin(); it != rspArgv.end();
+         ++it )
+        spawn_argv.push_back( const_cast< char * >(( *it ).c_str()));
+#endif
 
     spawn_argv.push_back( 0 );
 
@@ -786,8 +840,10 @@ int KDllAr::gcc()
 
     argv.append( KStringV::split( _flags ));
 
+#ifdef __EMX__
     char *ldType = getenv("EMXOMFLD_TYPE");
     if( ldType && !stricmp( ldType, "WLINK"))
+#endif
     {
         argv.push_back("-Zlinker");
         argv.push_back("DISABLE");
@@ -820,6 +876,7 @@ int KDllAr::lxlite()
     if( !_useLxlite )
         return 0;
 
+#ifdef __EMX__
     KStringV argv;
 
     argv.push_back("lxlite");
@@ -830,6 +887,9 @@ int KDllAr::lxlite()
     argv.push_back( _dllName );
 
     return execute( argv );
+#else
+    return 0;
+#endif
 }
 
 int KDllAr::removeTempFiles()

@@ -21,7 +21,7 @@
 **
 ****************************************************************************/
 
-#include "KStringV.h"
+#include "kstringv.h"
 
 using namespace std;
 

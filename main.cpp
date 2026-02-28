@@ -23,8 +23,15 @@
 
 #include "kdllar.h"
 
+#include <cstdlib>
+
 int main( int argc, char *argv[])
 {
+#ifdef __EMX__
+    _response( &argc, &argv);
+    _wildcard( &argc, &argv);
+#endif
+
     KDllAr kda( argc, argv );
 
     return kda.run();

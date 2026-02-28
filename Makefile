@@ -74,7 +74,6 @@ RCFLAGS :=
 BIN_PROGRAMS := kdllar
 
 kdllar_SRCS     := main.cpp kdllar.cpp kstringv.cpp
-kdllar_LDFLAGS  := -Zargs-wild -Zargs-resp
 
 # 1. specify a list of libraries without an extension with
 #
