@@ -222,7 +222,6 @@ static int execute( const KStringV& argv, const KStringV& rspArgv = KStringV(),
 
     string rspArg("@");
 
-#ifdef __EMX__
     if( rspArgv.size() > 0 )
     {
         ofstream ofs;
@@ -245,11 +244,6 @@ static int execute( const KStringV& argv, const KStringV& rspArgv = KStringV(),
 
         spawn_argv.push_back( const_cast< char * >( rspArg.c_str()));
     }
-#else
-    for( KStringV::const_iterator it = rspArgv.begin(); it != rspArgv.end();
-         ++it )
-        spawn_argv.push_back( const_cast< char * >(( *it ).c_str()));
-#endif
 
     spawn_argv.push_back( 0 );
 

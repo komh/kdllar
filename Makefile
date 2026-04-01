@@ -17,7 +17,7 @@
 SUBDIRS :=
 
 # specify gcc compiler flags for all the programs
-CFLAGS :=
+CFLAGS := -Wall
 
 # specify g++ compiler flags for all the programs
 CXXFLAGS := -Wall
@@ -30,12 +30,12 @@ LDLIBS :=
 
 ifdef RELEASE
 # specify flags for release mode
-CFLAGS   +=
+CFLAGS   += -O3
 CXXFLAGS += -O3
 LDFLAGS  +=
 else
 # specify flags for debug mode
-CFLAGS   +=
+CFLAGS   += -O0 -g -DDEBUG
 CXXFLAGS += -O0 -g -DDEBUG
 LDFLAGS  += -g
 endif
@@ -74,6 +74,13 @@ RCFLAGS :=
 BIN_PROGRAMS := kdllar
 
 kdllar_SRCS     := main.cpp kdllar.cpp kstringv.cpp
+ifeq ($(OS2_SHELL),)
+kdllar_CFLAGS   := -DHAVE_STDLIB_H -DHAVE_STRING_H -I. -Ilibiberty
+kdllar_CXXFLAGS := -DHAVE_STDLIB_H -DHAVE_STRING_H -DHAVE_DECL_BASENAME=1 \
+                   -I. -Ilibiberty
+kdllar_SRCS     += libiberty/argv.c libiberty/xmalloc.c libiberty/xexit.c \
+                   libiberty/xstrdup.c libiberty/safe-ctype.c
+endif
 
 # 1. specify a list of libraries without an extension with
 #

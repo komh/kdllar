@@ -24,12 +24,17 @@
 #include "kdllar.h"
 
 #include <cstdlib>
+#ifndef __EMX__
+#include "libiberty.h"
+#endif
 
 int main( int argc, char *argv[])
 {
 #ifdef __EMX__
     _response( &argc, &argv);
     _wildcard( &argc, &argv);
+#else
+    expandargv (&argc, &argv);
 #endif
 
     KDllAr kda( argc, argv );
