@@ -370,6 +370,7 @@ KDllAr::KDllAr( int argc, char* argv[])
 
 KDllAr::~KDllAr()
 {
+    removeTempFiles();
 }
 
 int KDllAr::processArg()
@@ -624,9 +625,6 @@ int KDllAr::run()
         return -1;
 
     if( lxlite())
-        return -1;
-
-    if( removeTempFiles())
         return -1;
 
     return 0;
