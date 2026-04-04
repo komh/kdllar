@@ -125,3 +125,16 @@ BIN_LIBRARIES :=
 include Makefile.common
 
 # additional stuffs
+
+CLEAN-FILES += kld$(EXE_EXT)
+
+ifneq ($(OS2_SHELL),)
+LN_S := ln4exe -s
+else
+LN_S := ln -s
+endif
+
+all: kld$(EXE_EXT)
+
+kld$(EXE_EXT) : kdllar$(EXE_EXT)
+	$(QUIET)$(LN_S) kdllar$(EXE_EXT) $@

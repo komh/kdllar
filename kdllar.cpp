@@ -23,6 +23,7 @@
 
 #include "kdllar.h"
 
+#include <memory>
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -37,6 +38,7 @@
 #else
 #include <unistd.h>
 #endif
+#include <dirent.h>
 #include <fnmatch.h>
 #include <sys/types.h>
 #include <sys/wait.h>
@@ -141,6 +143,11 @@ static inline string getExt( const string &filename )
         return string();
 
     return filename.substr( pos );
+}
+
+static inline bool isAbsolute( const string& path )
+{
+    return path[ 0 ] == '/' || path[ 0 ] == '\\' || path[ 1 ] == ':';
 }
 
 static inline int stricmp( const string& s1, const string& s2 )
@@ -356,12 +363,20 @@ Example:\n\
 KDllAr::KDllAr( int argc, char* argv[])
         : _useOrd( false )
         , _useCrtDll( true )
-        , _useOmf( true )
+        , _useOmf( false )
         , _useLxlite( true )
         , _keepDef( true )
         , _symPrefix( false )
+        , _dllMode( false )
         , _defProvided( false )
 {
+    // Compatibility mode for kdllar
+    if( !stricmp( getFName( argv[ 0 ]), "kdllar"))
+    {
+        _useOmf = true;
+        _dllMode = true;
+    }
+
     int i;
 
     for( i = 0; i < argc; i++ )
@@ -375,6 +390,7 @@ KDllAr::~KDllAr()
 
 int KDllAr::processArg()
 {
+    KStringV gccArgv;
     size_t i;
 
     for( i = 1; i < _argv.size(); i++ )
@@ -543,9 +559,13 @@ int KDllAr::processArg()
         {
             _exclude += " *";
         }
+        else if( !arg.compare("-Zdll") || !arg.compare("-shared"))
+        {
+            _dllMode = true;
+        }
         else
         {
-            _gccArgv.push_back( arg );
+            gccArgv.push_back( arg );
         }
     }
 
@@ -556,8 +576,7 @@ int KDllAr::processArg()
     KStringV includeLibs( KStringV::split( _includeLibs ));
     KStringV excludeLibs( KStringV::split( _excludeLibs ));
 
-    for( KStringV::iterator it = _gccArgv.begin();
-         it != _gccArgv.end(); ++it )
+    for( KStringV::iterator it = gccArgv.begin(); it != gccArgv.end(); ++it )
     {
         if(( *it )[ 0 ] != '-' &&
            isObject(( *it ), objExt, includeLibs, excludeLibs ))
@@ -565,11 +584,55 @@ int KDllAr::processArg()
             if( _outputName.empty())
                 _outputName = getName( *it );
 
-            if( emxomf( &( *it )) == -1 )
+            if( _useOmf && emxomf( &( *it )) == -1 )
                 return -1;
 
-            _objs.push_back( *it );
+            if( !_useOmf && _dllMode && !stricmp( getExt( *it ), ".a"))
+            {
+                // ld does not export symbols in .a file, so extract all object
+                // files from .a file
+                std::string out(( *it ) + ".$$$");
+
+                if( arx( *it, out ) == -1 )
+                    return -1;
+
+                // scan out dir and add the object files to _objs and _gccArgv
+                struct dirent **l;
+                int n;
+
+                n = scandir( out.c_str(), &l, nullptr, nullptr );
+                if( n == -1 )
+                    return -1;
+
+                for( i = 0; i < ( size_t )n; i++ )
+                {
+                    string name( l[ i ]->d_name );
+
+                    if( !name.compare(".") || !name.compare(".."))
+                    {
+                        free( l[ i ]);
+
+                        continue;
+                    }
+
+                    string obj( out + "/" + name );
+
+                    _objs.push_back( obj );
+                    _gccArgv.push_back( obj );
+
+                    free( l[ i ]);
+                }
+
+                free( l );
+            }
+            else
+            {
+                _objs.push_back( *it );
+                _gccArgv.push_back( *it );
+            }
         }
+        else
+            _gccArgv.push_back( *it );
     }
 
     if( _objs.size() == 0 )
@@ -590,27 +653,38 @@ int KDllAr::processArg()
     if( _useOmf )
         _flags += " -Zomf";
 
-    _exclude += " _DLL_InitTerm";
+    if( _dllMode )
+    {
+        _flags += " -Zdll";
+        _exclude += " _DLL_InitTerm";
 
-    if( _libFlags.empty())
-        _libFlags = "INITINSTANCE TERMINSTANCE";
+        if( _libFlags.empty())
+            _libFlags = "INITINSTANCE TERMINSTANCE";
 
-    if( !stricmp( _libData.substr( 0, 5 ), "DATA "))
-        _libData.erase( 0, 5 );
+        if( !stricmp( _libData.substr( 0, 5 ), "DATA "))
+            _libData.erase( 0, 5 );
 
-    if( _libData.empty())
-        _libData = "MULTIPLE NONSHARED";
+        if( _libData.empty())
+            _libData = "MULTIPLE NONSHARED";
 
-    if( _defName.empty())
-        _defName = _outputName + ".def";
+        if( !_defProvided )
+            _defName = _outputName + ".def";
 
-    if( _implibName.empty())
-        _implibName = _outputName + "_dll.a";
+        if( _implibName.empty())
+            _implibName = _outputName + "_dll.a";
 
-    _dllName = getDir( _outputName ) + getFName( _outputName ).substr( 0, 8 )
-               + ".dll";
+        _dllName = getDir( _outputName )
+                   + getFName( _outputName ).substr( 0, 8 ) + ".dll";
+    }
+    else
+    {
+        if( !_defProvided && !_description.empty())
+            _defName = _outputName + ".def";
 
-    if( !_defProvided && !_keepDef )
+        _exeName = _outputName + ".exe";
+    }
+
+    if( !_defProvided && !_defName.empty() && !_keepDef )
         _tempFiles.push_back( _defName );
 
     return 0;
@@ -621,13 +695,21 @@ int KDllAr::run()
     if( processArg())
         return -1;
 
-    if( !_defProvided && ( sym2in() || emxexp()))
-        return -1;
+    if( _dllMode )
+    {
+        if( sym2in() || emxexp())
+            return -1;
+    }
+    else
+    {
+        if( genExeDef())
+            return -1;
+    }
 
     if( gcc())
         return -1;
 
-    if( emximp())
+    if( _dllMode && emximp())
         return -1;
 
     if( lxlite())
@@ -685,6 +767,36 @@ int KDllAr::emxomf( string *obj )
     }
 
     return 0;
+}
+
+int KDllAr::arx( const string& lib, const string& out )
+{
+    unique_ptr< char, decltype( &free )> cwd( getcwd( nullptr, 0 ), free );
+
+    if( !cwd )
+        return -1;
+
+    if( mkdir( out.c_str(), 0755 ) == -1 )
+    {
+        cerr << "Failed to create a dir " << out << endl;
+
+        return -1;
+    }
+
+    _tempDirs.push_back( out );
+
+    chdir( out.c_str());
+
+    KStringV argv;
+
+    argv.push_back("ar");
+    argv.push_back("x");
+    argv.push_back( isAbsolute( lib ) ? lib : string( cwd.get()) + "/" + lib );
+    int rc = execute( argv );
+
+    chdir( cwd.get());
+
+    return rc;
 }
 
 static const int STDOUT_FILE_NO = 1;
@@ -828,31 +940,58 @@ int KDllAr::sym2in()
     return 0;
 }
 
+int KDllAr::genExeDef()
+{
+    if( _defProvided || _defName.empty() || _description.empty())
+        return 0;
+
+    ofstream ofs;
+
+    ofs.open( _defName.c_str());
+
+    if( ofs.is_open())
+    {
+        ofs << "DESCRIPTION \"" << _description << "\"" << endl;
+
+        ofs.close();
+    }
+    else
+    {
+        cerr << "Failed to create a def file, " << _defName << endl;
+
+        return -1;
+    }
+
+    return 0;
+}
+
 int KDllAr::gcc()
 {
     KStringV argv;
 
     argv.push_back( _cc );
 
-    _flags += " -Zdll";
-
     argv.append( KStringV::split( _flags ));
 
-#ifdef __EMX__
-    char *ldType = getenv("EMXOMFLD_TYPE");
-    if( ldType && !stricmp( ldType, "WLINK"))
-#endif
+    if( _useOmf )
     {
-        argv.push_back("-Zlinker");
-        argv.push_back("DISABLE");
+#ifdef __EMX__
+        char *ldType = getenv("EMXOMFLD_TYPE");
+        if( ldType && !stricmp( ldType, "WLINK"))
+#endif
+        {
+            argv.push_back("-Zlinker");
+            argv.push_back("DISABLE");
 
-        argv.push_back("-Zlinker");
-        argv.push_back("1121");
+            argv.push_back("-Zlinker");
+            argv.push_back("1121");
+        }
     }
 
     argv.push_back("-o");
-    argv.push_back( _dllName );
-    argv.push_back( _defName );
+    argv.push_back( _dllMode ? _dllName : _exeName );
+    if( !_defName.empty())
+        argv.push_back( _defName );
 
     return execute( argv, _gccArgv );
 }
@@ -882,7 +1021,7 @@ int KDllAr::lxlite()
     argv.push_back("-t:");
     argv.push_back("-mrn");
     argv.push_back("-ml1");
-    argv.push_back( _dllName );
+    argv.push_back( _dllMode ? _dllName : _exeName );
 
     return execute( argv );
 #else
@@ -895,6 +1034,30 @@ int KDllAr::removeTempFiles()
     for( KStringV::const_iterator it = _tempFiles.begin();
          it != _tempFiles.end(); ++it )
         remove(( *it ).c_str());
+
+    for( KStringV::const_iterator it = _tempDirs.begin();
+         it != _tempDirs.end(); ++it )
+    {
+        struct dirent **l;
+        int n = scandir(( *it ).c_str(), &l, nullptr, nullptr );
+
+        if( n != -1 )
+        {
+            for( int i = 0; i < n; i++ )
+            {
+                string name( l[ i ]->d_name );
+
+                if( name.compare(".") && name.compare(".."))
+                    remove((( *it ) + "/" + name).c_str());
+
+                free( l[ i ]);
+            }
+
+            free( l );
+        }
+
+        rmdir(( *it ).c_str());
+    }
 
     return 0;
 }

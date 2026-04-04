@@ -60,6 +60,8 @@ private:
     std::string _objExt;
 
     std::string _dllName;
+    std::string _exeName;
+    bool        _dllMode;
     bool        _defProvided;
     KStringV    _objs;
     KStringV    _gccArgv;
@@ -68,11 +70,14 @@ private:
     std::string _excludeLibs;
 
     KStringV    _tempFiles;
+    KStringV    _tempDirs;
 
     int processArg();
     int emxomf( std::string *obj );
+    int arx( const std::string& lib, const std::string& out );
     int emxexp();
     int sym2in();
+    int genExeDef();
     int gcc();
     int emximp();
     int lxlite();
