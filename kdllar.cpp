@@ -480,6 +480,12 @@ int KDllAr::processArg()
                 _defProvided = true;
             }
         }
+        else if ( !stricmp( getExt( arg ), ".def"))
+        {
+            _defName = _argv[ i ];
+
+            _defProvided = true;
+        }
         else if( !arg.compare("-implib"))
         {
             if( i + 1 < _argv.size())
