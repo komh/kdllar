@@ -39,5 +39,5 @@ int main( int argc, char *argv[])
 
     KDllAr kda( argc, argv );
 
-    return kda.run();
+    return kda.run() == -1 ? 1 : 0;
 }
