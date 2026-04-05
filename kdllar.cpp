@@ -462,7 +462,7 @@ int KDllAr::processArg()
                 _libData =  _argv[ i ];
             }
         }
-        else if( !arg.compare("-omf"))
+        else if( !arg.compare("-omf") || !arg.compare("-Zomf"))
         {
             _useOmf = true;
         }
