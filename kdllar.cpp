@@ -293,6 +293,7 @@ K DLL Archiver v" KDLLAR_VERSION " Copyright (C) 2014-2016 KO Myung-Hun\n\
 Usage: kdllar [-o[utput] output_file] [-d[escription] \"dll descrption\"]\n\
        [-cc \"CC\"] [-f[lags] \"CFLAGS\"] [-ord[inals]] [-ex[clude] \"symbol(s)\"]\n\
        [-in[clude] \"symbol(s)\"] [-libf[lags] \"{INIT|TERM}{GLOBAL|INSTANCE}\"]\n\
+       [-app[type] {WINDOWAPI|WINDOWCOMPAT|NOTWINDOWCOMPAT}]\n\
        [-nocrt[dll]] [-libd[ata] \"DATA\"] [-omf] [-nolxlite] [-def def_file]\n\
        [-nokeepdef] [-implib implib_file] [-symfile \"symbol files\"]\n\
        [-symprefix] [-objext \"obj_extension(s)\"]\n\
@@ -318,6 +319,8 @@ Usage: kdllar [-o[utput] output_file] [-d[escription] \"dll descrption\"]\n\
 *> -libf[lags] can be used to add INITGLOBAL/INITINSTANCE and/or\n\
    TERMGLOBAL/TERMINSTANCE flags to the dynamically-linked library.\n\
    (default: INITINSTANCE TERMINSTANCE)\n\
+*> -app[type] can be used to set an app type of the executable to WINDOWAPI,\n\
+   WINDOWCOMPAT or NOTWINDOWCOMPAT. (default: WINDOWCOMPAT)\n\
 *> -libd[ata] can be used to add data segment attributes flags to the\n\
    dynamically-linked library. (default: MULTIPLE NONSHARED)\n\
 *> -nocrtdll switch will disable linking the library against emx's\n\
@@ -454,6 +457,15 @@ int KDllAr::processArg()
             {
                 i++;
                 _include += " " + _argv[ i ];
+            }
+        }
+        else if( !arg.compare("-app") ||
+                 !arg.compare("-apptype"))
+        {
+            if( i + 1 < _argv.size())
+            {
+                i++;
+                _appType =  _argv[ i ];
             }
         }
         else if( !arg.compare("-libf") ||
@@ -679,7 +691,7 @@ int KDllAr::processArg()
     }
     else
     {
-        if( !_defProvided && !_description.empty())
+        if( !_defProvided && !( _description.empty() && _appType.empty()))
             _defName = _outputName + ".def";
 
         _exeName = _outputName + ".exe";
@@ -947,7 +959,8 @@ int KDllAr::sym2in()
 
 int KDllAr::genExeDef()
 {
-    if( _defProvided || _defName.empty() || _description.empty())
+    if( _defProvided || _defName.empty()
+        || ( _description.empty() && _appType.empty()))
         return 0;
 
     ofstream ofs;
@@ -956,7 +969,11 @@ int KDllAr::genExeDef()
 
     if( ofs.is_open())
     {
-        ofs << "DESCRIPTION \"" << _description << "\"" << endl;
+        if( !_appType.empty())
+            ofs << "NAME " << getFName( _exeName ) << " " << _appType << endl;
+
+        if( !_description.empty())
+            ofs << "DESCRIPTION \"" << _description << "\"" << endl;
 
         ofs.close();
     }

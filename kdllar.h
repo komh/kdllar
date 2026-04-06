@@ -47,6 +47,7 @@ private:
     bool        _useOrd;
     std::string _exclude;
     std::string _include;
+    std::string _appType;
     std::string _libFlags;
     bool        _useCrtDll;
     std::string _libData;
