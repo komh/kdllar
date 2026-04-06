@@ -917,6 +917,10 @@ int KDllAr::sym2in()
         while( !ifs.eof())
         {
             getline( ifs, line );
+#ifndef __EMX__
+            if( !line.empty() && line.back() == '\r')
+                line.pop_back();
+#endif
 
             // skip white spaces
             while( line[ 0 ] == ' ' || line[ 0 ] == '\t')
