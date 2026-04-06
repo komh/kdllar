@@ -10,7 +10,7 @@ K DLL Archiver. Enhanced version of dllar.cmd.
            for placement: /pub/os2/dev/util
 
                Your name: KO Myung-Hun
-           Email address: komh@chollian.net
+           Email address: komh78@gmail.com
     Program contact name: (same)
    Program contact email: (same)
              Program URL: https://github.com/komh/kdllar
