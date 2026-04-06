@@ -37,6 +37,7 @@
 #include <process.h>
 #else
 #include <unistd.h>
+#include <sys/stat.h>
 #endif
 #include <dirent.h>
 #include <fnmatch.h>

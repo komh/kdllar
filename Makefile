@@ -137,4 +137,5 @@ endif
 all: kld$(EXE_EXT)
 
 kld$(EXE_EXT) : kdllar$(EXE_EXT)
+	$(QUIET)$(RM) $@
 	$(QUIET)$(LN_S) kdllar$(EXE_EXT) $@
