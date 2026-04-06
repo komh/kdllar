@@ -355,6 +355,8 @@ Usage: kdllar [-o[utput] output_file] [-d[escription] \"dll descrption\"]\n\
 *> If a DLL name is longer than 8 characters, it will be truncated up to\n\
    8 characters. This is a limitaiton of OS/2. But an import library name\n\
    is not truncated.\n\
+*> If you call this program as 'kld', .exe will be generated without -omf by\n\
+   default. That is, kdllar is equivalent to 'kld -omf -Zdll'.\n\
 --------\n\
 Example:\n\
    kdllar -o gcc290.dll libgcc.a -d \"GNU C runtime library\" -ord\n\
