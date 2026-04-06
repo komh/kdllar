@@ -294,6 +294,7 @@ Usage: kdllar [-o[utput] output_file] [-d[escription] \"dll descrption\"]\n\
        [-cc \"CC\"] [-f[lags] \"CFLAGS\"] [-ord[inals]] [-ex[clude] \"symbol(s)\"]\n\
        [-in[clude] \"symbol(s)\"] [-libf[lags] \"{INIT|TERM}{GLOBAL|INSTANCE}\"]\n\
        [-app[type] {WINDOWAPI|WINDOWCOMPAT|NOTWINDOWCOMPAT}]\n\
+       [-stmt \"module statement\"]\n\
        [-nocrt[dll]] [-libd[ata] \"DATA\"] [-omf] [-nolxlite] [-def def_file]\n\
        [-nokeepdef] [-implib implib_file] [-symfile \"symbol files\"]\n\
        [-symprefix] [-objext \"obj_extension(s)\"]\n\
@@ -323,6 +324,8 @@ Usage: kdllar [-o[utput] output_file] [-d[escription] \"dll descrption\"]\n\
    WINDOWCOMPAT or NOTWINDOWCOMPAT. (default: WINDOWCOMPAT)\n\
 *> -libd[ata] can be used to add data segment attributes flags to the\n\
    dynamically-linked library. (default: MULTIPLE NONSHARED)\n\
+*> -stmt can be used to add arbitrary module statements as many times as\n\
+   necessary.\n\
 *> -nocrtdll switch will disable linking the library against emx's\n\
    C runtime DLLs.\n\
 *> -nolxlite does not compress executable\n\
@@ -491,6 +494,14 @@ int KDllAr::processArg()
             {
                 i++;
                 _libData =  _argv[ i ];
+            }
+        }
+        else if( !arg.compare("-stmt"))
+        {
+            if( i + 1 < _argv.size())
+            {
+                i++;
+                _stmt.push_back( _argv[ i ]);
             }
         }
         else if( !arg.compare("-omf") || !arg.compare("-Zomf"))
@@ -693,7 +704,8 @@ int KDllAr::processArg()
     }
     else
     {
-        if( !_defProvided && !( _description.empty() && _appType.empty()))
+        if( !_defProvided
+            & !( _description.empty() && _appType.empty() && _stmt.empty()))
             _defName = _outputName + ".def";
 
         _exeName = _outputName + ".exe";
@@ -962,7 +974,7 @@ int KDllAr::sym2in()
 int KDllAr::genExeDef()
 {
     if( _defProvided || _defName.empty()
-        || ( _description.empty() && _appType.empty()))
+        || ( _description.empty() && _appType.empty() && _stmt.empty()))
         return 0;
 
     ofstream ofs;
@@ -976,6 +988,9 @@ int KDllAr::genExeDef()
 
         if( !_description.empty())
             ofs << "DESCRIPTION \"" << _description << "\"" << endl;
+
+        for( auto it = _stmt.cbegin(); it != _stmt.cend(); ++it )
+            ofs << ( *it ) << endl;
 
         ofs.close();
     }

@@ -51,6 +51,7 @@ private:
     std::string _libFlags;
     bool        _useCrtDll;
     std::string _libData;
+    KStringV    _stmt;
     bool        _useOmf;
     bool        _useLxlite;
     std::string _defName;
