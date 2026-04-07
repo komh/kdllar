@@ -724,7 +724,7 @@ int KDllAr::run()
 
     if( _dllMode )
     {
-        if( sym2in() || emxexp())
+        if( sym2in() || genDllDef())
             return -1;
     }
     else
@@ -828,7 +828,7 @@ int KDllAr::arx( const string& lib, const string& out )
 
 static const int STDOUT_FILE_NO = 1;
 
-int KDllAr::emxexp()
+int KDllAr::genDllDef()
 {
     if( _defProvided )
         return 0;

@@ -77,7 +77,7 @@ private:
     int processArg();
     int emxomf( std::string *obj );
     int arx( const std::string& lib, const std::string& out );
-    int emxexp();
+    int genDllDef();
     int sym2in();
     int genExeDef();
     int gcc();
