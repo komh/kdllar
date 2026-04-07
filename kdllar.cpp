@@ -871,6 +871,10 @@ int KDllAr::emxexp()
             ss << "DESCRIPTION \"" << _description << "\"" << endl;
 
         ss << "DATA " << _libData << endl;
+
+        for( auto it = _stmt.cbegin(); it != _stmt.cend(); ++it )
+            ss << ( *it ) << endl;
+
         ss << "EXPORTS" << endl;
 
         KStringV include( KStringV::split( _include ));
