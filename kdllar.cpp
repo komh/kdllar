@@ -207,18 +207,22 @@ static inline bool isIncluded( const string& name,
     return false;
 }
 
-static int execute( const KStringV& argv, const KStringV& rspArgv = KStringV(),
-                    int mode = P_WAIT, string* rspName = 0 )
+static int execute( bool echo, const KStringV& argv,
+                    const KStringV& rspArgv = KStringV(), int mode = P_WAIT,
+                    string* rspName = 0 )
 {
-    for( KStringV::const_iterator it = argv.begin(); it != argv.end();
-         ++it )
-        cerr << *it << " ";
+    if( echo )
+    {
+        for( KStringV::const_iterator it = argv.begin(); it != argv.end();
+             ++it )
+            cerr << *it << " ";
 
-    for( KStringV::const_iterator it = rspArgv.begin(); it != rspArgv.end();
-         ++it )
-        cerr << *it << " ";
+        for( KStringV::const_iterator it = rspArgv.begin(); it != rspArgv.end();
+             ++it )
+            cerr << *it << " ";
 
-    cerr << endl;
+        cerr << endl;
+    }
 
     vector< char * > spawn_argv;
 
@@ -299,7 +303,7 @@ Usage: kdllar [-o[utput] output_file] [-d[escription] \"dll descrption\"]\n\
        [-nokeepdef] [-implib implib_file] [-symfile \"symbol files\"]\n\
        [-symprefix] [-objext \"obj_extension(s)\"]\n\
        [-ex[clude]libs \"lib(s)\"] [-in[clude]libs \"lib(s)\"]\n\
-       [-noexport] [*.o] [*.a]\n\
+       [-noexport] [-noecho] [*.o] [*.a]\n\
 *> \"output_file\" should have no extension.\n\
    If it has the .o, .a or .dll extension, it is automatically removed.\n\
    The import library name is derived from this and is set to \"name\"_dll.a\n\
@@ -349,6 +353,7 @@ Usage: kdllar [-o[utput] output_file] [-d[escription] \"dll descrption\"]\n\
 *> -noexport do not export any symbols via .def file. This is useful if all\n\
    symbols are exported in sources via keywords such as\n\
    __declspec(dllexport). This is equivalent to -ex \"*\".\n\
+*> -noecho do not show commands being executed.\n\
 *> All other switches (for example -L./ or -lmylib) will be passed\n\
    unchanged to GCC at the end of command line.\n\
 *> If you create a DLL from a library and you do not specify -o,\n\
@@ -376,6 +381,7 @@ KDllAr::KDllAr( int argc, char* argv[])
         , _useLxlite( true )
         , _keepDef( true )
         , _symPrefix( false )
+        , _echo( true )
         , _dllMode( false )
         , _defProvided( false )
 {
@@ -585,6 +591,10 @@ int KDllAr::processArg()
         {
             _exclude += " *";
         }
+        else if( !arg.compare("-noecho"))
+        {
+            _echo = false;
+        }
         else if( !arg.compare("-Zdll") || !arg.compare("-shared"))
         {
             _dllMode = true;
@@ -785,7 +795,7 @@ int KDllAr::emxomf( string *obj )
         argv.push_back("-o");
         argv.push_back( *obj + omfExt );
         argv.push_back( *obj );
-        if( execute( argv ) == -1 )
+        if( execute( _echo, argv ) == -1 )
             return -1;
 
         *obj += omfExt;
@@ -819,7 +829,7 @@ int KDllAr::arx( const string& lib, const string& out )
     argv.push_back("ar");
     argv.push_back("x");
     argv.push_back( isAbsolute( lib ) ? lib : string( cwd.get()) + "/" + lib );
-    int rc = execute( argv );
+    int rc = execute( _echo, argv );
 
     chdir( cwd.get());
 
@@ -856,7 +866,7 @@ int KDllAr::genDllDef()
 
     string rspName;
 
-    int rc = execute( argv, _objs, P_NOWAIT, &rspName );
+    int rc = execute( _echo, argv, _objs, P_NOWAIT, &rspName );
 
     dup2( oldStdOut, STDOUT_FILE_NO );
     close( oldStdOut );
@@ -1036,7 +1046,7 @@ int KDllAr::gcc()
     if( !_defName.empty())
         argv.push_back( _defName );
 
-    return execute( argv, _gccArgv );
+    return execute( _echo, argv, _gccArgv );
 }
 
 int KDllAr::emximp()
@@ -1048,7 +1058,7 @@ int KDllAr::emximp()
     argv.push_back( _implibName );
     argv.push_back( _dllName );
 
-    return execute( argv );
+    return execute( _echo, argv );
 }
 
 int KDllAr::lxlite()
@@ -1066,7 +1076,7 @@ int KDllAr::lxlite()
     argv.push_back("-ml1");
     argv.push_back( _dllMode ? _dllName : _exeName );
 
-    return execute( argv );
+    return execute( _echo, argv );
 #else
     return 0;
 #endif

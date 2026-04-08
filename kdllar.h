@@ -60,6 +60,7 @@ private:
     std::string _symFile;
     bool        _symPrefix;
     std::string _objExt;
+    bool        _echo;
 
     std::string _dllName;
     std::string _exeName;
