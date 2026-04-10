@@ -11,8 +11,36 @@ kdllar has better things than dllar.cmd like this,
     - Process a very long command line
     - Do not depend on CMD.EXE and kRx.exe
 
+K ld
+----
+
+kld is a linker to build .EXE and .DLL.
+
 History
 -------
+
+v1.4.0 ( 2026/04/10 )
+    - Ported to Linux-x64
+
+    - Added kld to build .EXE and .DLL
+        * kdllar is equivalent to `kld -Zomf -Zdll'
+
+    - Added to determine .def file from a file list even if -def is not given
+
+    - Added to determine OMF mode with -Zomf option even if -omf is not given
+
+    - Added -app[type] option to specify an app type of the executable
+        * WINDOWAPI for PM
+        * WINDOWCOMPAT for VIO
+        * NOTWINDOWCOMPAT for full screen
+
+    - Added -stmt option to add arbitrary module statements
+
+    - Added -noecho to disable to show commands being executed
+
+    - Fixed conversion of the .o file which has only header to .obj fails
+
+    - Fixed kdllar returns -1 to the shell on error
 
 v1.3.0 ( 2020/07/18 )
     - Added -noexport

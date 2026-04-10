@@ -7,6 +7,7 @@ sVerMacro = 'KDLLAR_VERSION'
 sVerHeader = 'kdllar.h'
 
 sDistFiles = 'kdllar.exe',
+             'kld.exe',
              'README'
 
 /****** Configuration parts end ******/
