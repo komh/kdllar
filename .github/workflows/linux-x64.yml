@@ -1,0 +1,42 @@
+name: linux-x64
+
+on:
+  push:
+    paths-ignore:
+      - 'README'
+      - 'kdllar.txt'
+      - 'COPYING.LIB'
+
+  pull_request:
+    paths-ignore:
+      - 'README'
+      - 'kdllar.txt'
+      - 'COPYING.LIB'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Build
+        run: make
+
+      - name: Test
+        run: |
+          cross_os2emx_ver="1.1.1"
+          cross_os2emx_namever="cross-os2emx-$cross_os2emx_ver"
+          cross_os2emx_tarball="$cross_os2emx_namever.tar.gz"
+          cross_os2emx_url="https://github.com/komh/cross-os2emx/releases/download/$cross_os2emx_ver/$cross_os2emx_tarball"
+
+          wget "$cross_os2emx_url"
+          tar xvzf "$cross_os2emx_tarball"
+
+          export PATH="$(pwd)/$cross_os2emx_namever/opt/os2emx/bin:$PATH"
+          make test CC="i686-pc-os2-emx-gcc"
