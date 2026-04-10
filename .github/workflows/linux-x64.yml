@@ -6,12 +6,18 @@ on:
       - 'README'
       - 'kdllar.txt'
       - 'COPYING.LIB'
+      - '.gitignore'
+      - '.gitattributes'
+      - '.github/FUNDING.yml'
 
   pull_request:
     paths-ignore:
       - 'README'
       - 'kdllar.txt'
       - 'COPYING.LIB'
+      - '.gitignore'
+      - '.gitattributes'
+      - '.github/FUNDING.yml'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
