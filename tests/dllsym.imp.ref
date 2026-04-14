@@ -1,5 +1,2 @@
-;
-;
-; dllsym.imp (created by emximp)
 _dll2_fn2               DLLSYM   _dll2_fn2               ?
 _dll3_fn1               DLLSYM   _dll3_fn1               ?

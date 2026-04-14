@@ -1,3 +1,4 @@
+*.bak
 *.d
 *.o
 *.obj
@@ -8,3 +9,8 @@
 med.lru
 kdllar
 kld
+tests/kdllar
+tests/kld-aout-dll
+tests/kld-aout-exe
+tests/kld-omf-dll
+tests/kld-omf-exe

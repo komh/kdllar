@@ -22,8 +22,12 @@ EMXIMP := emximp
 MV := mv
 RM := rm -f
 CMP := diff -i
+SED := sed
 SORT := sort
 GREP := grep
+MKDIR_P := mkdir -p
+
+OUTDIR := .
 
 DLLPATH := ././././././././././
 DLLNAMESHORT := dll_long
@@ -33,10 +37,11 @@ DLLNAMELONG := $(DLLPATH)$(DLLNAMESHORT)_name
 	$(CC) $(CFLAGS) -o $@ -c $<
 
 %.imp: %.dll
+	$(MKDIR_P) $(dir $@)
 	$(EMXIMP) -o $@ $<
-	$(SORT) $@ > $@.sort
+	$(SED) /^\;/d $@ | $(SORT) > $@.sort
 	$(MV) $@.sort $@
-	$(CMP) $@ $@.ref
+	$(CMP) $@ $(notdir $@).ref
 
 .PHONY: all
 
@@ -44,26 +49,39 @@ all: test-kdllar test-kld
 
 .PHONY: test-kdllar
 
+test-kdllar: OUTDIR=kdllar
 test-kdllar:
-	$(MAKE) clean
-	$(MAKE) dllexp.imp
-	$(MAKE) dllsym.imp
-	$(MAKE) $(DLLNAMELONG).imp
+	$(MKDIR_P) $(OUTDIR)
+	$(MAKE) dllexp_imp OUTDIR=$(OUTDIR)
+	$(MAKE) dllsym_imp OUTDIR=$(OUTDIR)
+	$(MAKE) $(notdir $(DLLNAMELONG))_imp OUTDIR=$(OUTDIR)
 
-dllexp.dll: dll1.o dll2.a dll3.a
+.PHONY: dllexp_imp
+
+dllexp_imp: $(OUTDIR)/dllexp.imp
+
+$(OUTDIR)/dllexp.dll: dll1.o dll2.a dll3.a
 	$(KDLLAR) -noexport -o $@ dll1.o dll2.a dll3.a
 
-dllsym.dll: dll2.a dll3.a dll.sym
+.PHONY: dllsym_imp
+
+dllsym_imp: $(OUTDIR)/dllsym.imp
+
+$(OUTDIR)/dllsym.dll: dll2.a dll3.a dll.sym
 	$(KDLLAR) -symprefix -symfile dll.sym -o $@ dll2.a dll3.a
 
-$(DLLNAMELONG).imp: $(DLLNAMESHORT).dll
-	$(EMXIMP) -o $@ $<
-	$(SORT) $@ > $@.sort
-	$(MV) $@.sort $@
-	$(CMP) $@ $@.ref
+.PHONY: $(notdir $(DLLNAMELONG))_imp
 
-$(DLLNAMESHORT).dll: dll2.a dll3.a
-	$(KDLLAR) -o $(DLLNAMELONG).dll dll1.o dll2.a dll3.a
+$(notdir $(DLLNAMELONG))_imp: $(OUTDIR)/$(DLLNAMELONG).imp
+
+$(OUTDIR)/$(DLLNAMELONG).imp: $(OUTDIR)/$(DLLNAMESHORT).dll
+	$(EMXIMP) -o $@ $<
+	$(SED) /^\;/d $@ | $(SORT) > $@.sort
+	$(MV) $@.sort $@
+	$(CMP) $@ $(notdir $@).ref
+
+$(OUTDIR)/$(DLLNAMESHORT).dll: dll2.a dll3.a
+	$(KDLLAR) -o $@ dll1.o dll2.a dll3.a
 
 dll2.a: dll2.o
 	$(AR) $(ARFLAGS) $@ $<
@@ -81,23 +99,29 @@ test-kld-aout: test-kld-aout-dll test-kld-aout-exe
 
 .PHONY: test-kld-aout-dll
 
+test-kld-aout-dll: OUTDIR=kld-aout-dll
 test-kld-aout-dll:
-	$(MAKE) clean
-	$(MAKE) KDLLAR="$(KLD) -Zdll" dllexp.imp \
+	$(MKDIR_P) $(OUTDIR)
+	$(MAKE) KDLLAR="$(KLD) -Zdll" dllexp_imp OUTDIR=$(OUTDIR) \
 	  || echo "Expected failure of dllexp.imp! __declspec(dllexport) is not supported by ld."
-	$(MAKE) KDLLAR="$(KLD) -Zdll" dllsym.imp
-	$(MAKE) KDLLAR="$(KLD) -Zdll" $(DLLNAMELONG).imp
+	$(MAKE) KDLLAR="$(KLD) -Zdll" dllsym_imp OUTDIR=$(OUTDIR)
+	$(MAKE) KDLLAR="$(KLD) -Zdll" $(notdir $(DLLNAMELONG))_imp OUTDIR=$(OUTDIR)
 
 .PHONY: test-kld-aout-exe
 
+test-kld-aout-exe: OUTDIR=kld-aout-exe
 test-kld-aout-exe:
-	$(MAKE) clean
-	$(MAKE) exe-aout.exe
+	$(MKDIR_P) $(OUTDIR)
+	$(MAKE) exe-aout_exe OUTDIR=$(OUTDIR)
+
+.PHONY: exe-aout_exe
+
+exe-aout_exe: $(OUTDIR)/exe-aout.exe
 
 EXE_AOUT_STR := This is emx-aout.exe
-exe-aout.exe: exe.o
-	$(KLD) -app WINDOWCOMPAT -d "$(EXE_AOUT_STR)" -o exe-aout.exe $<
-	$(GREP) "NAME $(@:.exe=) WINDOWCOMPAT" $(@:.exe=.def)
+$(OUTDIR)/exe-aout.exe: exe.o
+	$(KLD) -app WINDOWCOMPAT -d "$(EXE_AOUT_STR)" -o $@ $<
+	$(GREP) "NAME $(notdir $(@:.exe=)) WINDOWCOMPAT" $(@:.exe=.def)
 	$(GREP) "$(EXE_AOUT_STR)" $@
 
 .PHONY: test-kld-omf
@@ -106,26 +130,36 @@ test-kld-omf: test-kld-omf-dll test-kld-omf-exe
 
 .PHONY: test-kld-omf-dll
 
+test-kld-omf-dll: OUTDIR=kld-omf-dll
 test-kld-omf-dll:
-	$(MAKE) clean
-	$(MAKE) KDLLAR="$(KLD) -Zomf -Zdll" dllexp.imp
-	$(MAKE) KDLLAR="$(KLD) -Zomf -Zdll" dllsym.imp
-	$(MAKE) KDLLAR="$(KLD) -Zomf -Zdll" $(DLLNAMELONG).imp
+	$(MKDIR_P) $(OUTDIR)
+	$(MAKE) KDLLAR="$(KLD) -Zomf -Zdll" dllexp_imp OUTDIR=$(OUTDIR)
+	$(MAKE) KDLLAR="$(KLD) -Zomf -Zdll" dllsym_imp OUTDIR=$(OUTDIR)
+	$(MAKE) KDLLAR="$(KLD) -Zomf -Zdll" $(notdir $(DLLNAMELONG))_imp OUTDIR=$(OUTDIR)
 
 .PHONY: test-kld-omf-exe
 
+test-kld-omf-exe: OUTDIR=kld-omf-exe
 test-kld-omf-exe:
-	$(MAKE) clean
-	$(MAKE) exe-omf.exe
+	$(MKDIR_P) $(OUTDIR)
+	$(MAKE) exe-omf_exe OUTDIR=$(OUTDIR)
+
+.PHONY: exe-omf_exe
+
+exe-omf_exe: $(OUTDIR)/exe-omf.exe
 
 EXE_OMF_STR := This is emx-omf.exe
-
-exe-omf.exe: exe.o
-	$(KLD) -app WINDOWCOMPAT -d "$(EXE_OMF_STR)" -Zomf -o exe-omf.exe $<
-	$(GREP) "NAME $(@:.exe=) WINDOWCOMPAT" $(@:.exe=.def)
+$(OUTDIR)/exe-omf.exe: exe.o
+	$(KLD) -app WINDOWCOMPAT -d "$(EXE_OMF_STR)" -Zomf -o $@ $<
+	$(GREP) "NAME $(notdir $(@:.exe=)) WINDOWCOMPAT" $(@:.exe=.def)
 	$(GREP) "$(EXE_OMF_STR)" $@
 
 .PHONY: clean
 
 clean:
-	$(RM) *.o *.a *.lib *.dll *.exe *.def *.imp *.bak
+	$(RM) -r kdllar
+	$(RM) -r kld-aout-dll
+	$(RM) -r kld-aout-exe
+	$(RM) -r kld-omf-dll
+	$(RM) -r kld-omf-exe
+	$(RM) *.o *.a *.def *.exe
