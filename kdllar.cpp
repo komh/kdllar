@@ -1066,7 +1066,6 @@ int KDllAr::lxlite()
     if( !_useLxlite )
         return 0;
 
-#ifdef __EMX__
     KStringV argv;
 
     argv.push_back("lxlite");
@@ -1077,9 +1076,6 @@ int KDllAr::lxlite()
     argv.push_back( _dllMode ? _dllName : _exeName );
 
     return execute( _echo, argv );
-#else
-    return 0;
-#endif
 }
 
 int KDllAr::removeTempFiles()
