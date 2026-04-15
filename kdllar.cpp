@@ -1073,6 +1073,8 @@ int KDllAr::lxlite()
     argv.push_back("-t:");
     argv.push_back("-mrn");
     argv.push_back("-ml1");
+    argv.push_back("-b-");
+    argv.push_back("-l-");
     argv.push_back( _dllMode ? _dllName : _exeName );
 
     return execute( _echo, argv );
