@@ -143,3 +143,8 @@ kld$(EXE_EXT) : kdllar$(EXE_EXT)
 .PHONY: test
 test:
 	$(MAKE) -C tests
+
+.PHONY: clean-test
+clean: clean-test
+clean-test:
+	$(MAKE) -C tests clean
