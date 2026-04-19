@@ -4,10 +4,10 @@
 .SUFFIXES: .c .o .obj .a .lib .sym .dll .exe .def .imp
 
 CC := gcc
-CFLAGS :=
+CFLAGS := -Wall -std=c17 -D_GNU_SOURCE
 
 CXX := g++
-CXXFLAGS :=
+CXXFLAGS := -Wall -std=c++17 -D_GNU_SOURCE
 
 LDFLAGS :=
 
