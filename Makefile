@@ -17,10 +17,10 @@
 SUBDIRS :=
 
 # specify gcc compiler flags for all the programs
-CFLAGS := -Wall
+CFLAGS := -Wall -std=c17 -D_GNU_SOURCE
 
 # specify g++ compiler flags for all the programs
-CXXFLAGS := -Wall
+CXXFLAGS := -Wall -std=c++17 -D_GNU_SOURCE
 
 # specify linker flags such as -L option for all the programs
 LDFLAGS :=
