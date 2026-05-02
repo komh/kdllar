@@ -644,7 +644,10 @@ int KDllAr::processArg()
                 {
                     string name( l[ i ]->d_name );
 
-                    if( !name.compare(".") || !name.compare(".."))
+                    // exclude ., ..
+                    // On MacOS, ar extracts __.SYMDEF, exclude it, too
+                    if( name.compare(".") == 0 || name.compare("..") == 0
+                        || name.compare("__.SYMDEF") == 0 )
                     {
                         free( l[ i ]);
 
