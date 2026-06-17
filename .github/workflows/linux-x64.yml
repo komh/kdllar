@@ -34,15 +34,9 @@ jobs:
       - name: Build
         run: make
 
+      - name: Setup cross-os2emx env
+        uses: komh/setup-cross-os2emx@v1
+
       - name: Test
         run: |
-          cross_os2emx_ver="1.1.1"
-          cross_os2emx_namever="cross-os2emx-$cross_os2emx_ver"
-          cross_os2emx_tarball="$cross_os2emx_namever.tar.gz"
-          cross_os2emx_url="https://github.com/komh/cross-os2emx/releases/download/$cross_os2emx_ver/$cross_os2emx_tarball"
-
-          wget "$cross_os2emx_url"
-          tar xvzf "$cross_os2emx_tarball"
-
-          export PATH="$(pwd)/$cross_os2emx_namever/opt/os2emx/bin:$PATH"
           make test CC="i686-pc-os2-emx-gcc"
